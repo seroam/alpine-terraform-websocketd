@@ -1,0 +1,8 @@
+#!/bin/bash
+echo "========================================"
+echo "deploy script"
+echo "========================================"
+for ((COUNT = 1; COUNT <= 10; COUNT++)); do
+  echo "DEPLOY" $COUNT
+  sleep 1
+done

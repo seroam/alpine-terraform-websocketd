@@ -1,0 +1,8 @@
+#!/bin/bash
+echo "========================================"
+echo "ip addresses script"
+echo "========================================"
+for ((COUNT = 4; COUNT <= 14; COUNT++)); do
+  echo "IP" $COUNT
+  sleep 1
+done

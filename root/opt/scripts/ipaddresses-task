@@ -1,0 +1,8 @@
+#!/bin/bash
+echo "========================================"
+echo "ipaddresses task script"
+echo "========================================"
+for ((COUNT = 14; COUNT <= 24; COUNT++)); do
+  echo "IP" $COUNT
+  sleep 1
+done

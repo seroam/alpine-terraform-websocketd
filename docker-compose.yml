@@ -1,0 +1,8 @@
+version: '3.6'
+
+services:
+  alpine-terraform-websocketd:
+    build: .
+    image: hackinglab/alpine-terraform-websocketd:3.2
+    ports:
+      - 80:80

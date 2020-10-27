@@ -1,0 +1,8 @@
+#!/bin/bash
+echo "========================================"
+echo "destroy task script"
+echo "========================================"
+for ((COUNT = 12; COUNT <= 22; COUNT++)); do
+  echo "DESTROY" $COUNT
+  sleep 1
+done

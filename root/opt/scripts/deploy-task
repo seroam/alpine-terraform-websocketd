@@ -1,0 +1,8 @@
+#!/bin/bash
+echo "========================================"
+echo "deploy-task script"
+echo "========================================"
+for ((COUNT = 10; COUNT <= 20; COUNT++)); do
+  echo "DEPLOY" $COUNT
+  sleep 1
+done

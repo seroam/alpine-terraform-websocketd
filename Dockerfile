@@ -1,0 +1,22 @@
+FROM golang:latest as websocketd
+ENV CGO_ENABLED 0
+RUN go get github.com/joewalnes/websocketd
+
+
+FROM hackinglab/alpine-base:3.2
+MAINTAINER Ivan Buetler <ivan.buetler@compass-security.com
+
+COPY --from=websocketd /go/bin/websocketd /usr/bin/websocketd
+
+# Add the files
+ADD root /
+RUN apk add --no-cache --update nginx \
+        vim \
+        nginx \
+        openssl && \
+	rm -rf /var/cache/apk/* && \
+	chown -R nginx:www-data /var/lib/nginx && \
+	chown -R nginx:www-data /opt/www
+
+# Expose the ports for nginx
+EXPOSE 80

@@ -1,0 +1,8 @@
+#!/bin/bash
+echo "========================================"
+echo "log task script"
+echo "========================================"
+for ((COUNT = 16; COUNT <= 26; COUNT++)); do
+  echo "LOG" $COUNT
+  sleep 1
+done
