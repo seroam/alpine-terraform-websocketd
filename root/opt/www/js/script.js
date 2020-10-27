@@ -35,9 +35,12 @@ function log(message) {
     $('.pre-scrollable').scrollTop($('.pre-scrollable').prop('scrollHeight'));
 }
 
-function setupWebSocket(url, tool) {
-    const saneTool = sanitizedTool(tool);
-    const ws = new WebSocket(url + saneTool);
+function clear() {
+    $('#shell').text('');
+}
+
+function setupWebSocket(url) {
+    const ws = new WebSocket(url);
     ws.onmessage = function(event) {
         log(event.data);
     };
@@ -55,5 +58,13 @@ $(document).ready(() => {
     const tool = getGetParam('tool');
     setTitle(tool);
     setNav(tool);
-    setupWebSocket(BASE_SOCKET_URL, tool);
+    const saneTool = sanitizedTool(tool);
+    setupWebSocket(BASE_SOCKET_URL + saneTool);
+});
+
+$('#btn-run-task').click(() => {
+    const tool = getGetParam('tool');
+    const saneTool = sanitizedTool(tool);
+    clear();
+    setupWebSocket(`${BASE_SOCKET_URL}${saneTool}/task`);
 });
