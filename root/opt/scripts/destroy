@@ -1,8 +1,24 @@
 #!/bin/bash
-echo "========================================"
-echo "destroy script"
-echo "========================================"
-for ((COUNT = 2; COUNT <= 12; COUNT++)); do
-  echo "DESTROY" $COUNT
-  sleep 1
-done
+
+source /winattacklab/.deploy
+source /winattacklab/.destroy
+cd /winattacklab/
+
+case "$DEPLOYED" in
+        init)
+            echo "`date`: terraform deplyoment not yet startet - cannot destroy"
+            ;;
+
+        deploying)
+            echo "`date`: terraform deployment currently running - cannot destroy"
+            ;;
+
+        finished)
+			echo "`date`: terraform deployment has been finished"
+            echo "`date`: click on the \"Run Task\" button if you really want to destroy"
+            ;;
+
+        *)
+            exit 1
+
+esac

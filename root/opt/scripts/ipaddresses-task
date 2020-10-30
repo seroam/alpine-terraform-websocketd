@@ -1,8 +1,67 @@
 #!/bin/bash
-echo "========================================"
-echo "ipaddresses task script"
-echo "========================================"
-for ((COUNT = 14; COUNT <= 24; COUNT++)); do
-  echo "IP" $COUNT
-  sleep 1
-done
+echo "public ip addresses"
+
+source /winattacklab/.deploy
+source /winattacklab/.destroy
+cd /winattacklab/
+
+case "$DEPLOYED" in
+        init)
+            echo "`date`: terraform deplyoment not yet startet"
+            ;;
+
+        deploying)
+            ps -ef|grep "/usr/bin/terraform apply" | grep -v grep > /dev/null
+            RESULT=$?
+            if [ $RESULT -eq 0 ]; then
+                echo "`date`: terraform deployment is still running"
+            else
+                echo "`date`: terraform apply has finished"
+            fi
+
+echo "======= PUBLIC IP ======="
+terraform output -no-color 2>&1 | tee -a /winattacklab/logs/terraform-ipaddresses.log
+
+echo "======= RDP ACCESS Win10Client ======="
+echo "Protocol: RDP with username/password authentication"
+echo "Server:           `terraform output winclient1_public_ip -no-color`"
+echo "Domain:           winattacklab.local"
+echo "Username: tmassie"
+echo "Password: WinLAB!123"
+echo "======= SSH ACCESS Kali VM ======="
+echo "Protocol: SSH with publickey authentication"
+echo "Server:           `terraform output kali1_public_ip -no-color`"
+echo "Username: lab_admin"
+echo "Password: see ssh private key below"
+echo "Command:  ssh -i ~/.ssh/kali_private_key lab_admin@`terraform output kali1_public_ip -no-color`"
+echo "======= SSH PRIVATE KEY ======="
+cat /winattacklab/modules/kali1-client/kali_private_key
+            ;;
+
+        finished)
+		echo "`date`: terraform deployment has been finished"
+echo "======= PUBLIC IP ======="
+terraform output -no-color 2>&1 | tee -a /winattacklab/logs/terraform-ipaddresses.log
+
+echo "======= RDP ACCESS Win10Client ======="
+echo "Protocol: RDP with username/password authentication"
+echo "Server:           `terraform output winclient1_public_ip -no-color`"
+echo "Domain:           winattacklab.local"
+echo "Username: tmassie"
+echo "Password: WinLAB!123"
+echo "======= SSH ACCESS Kali VM ======="
+echo "Protocol: SSH with publickey authentication"
+echo "Server:           `terraform output kali1_public_ip -no-color`"
+echo "Username: lab_admin"
+echo "Password: see ssh private key below"
+echo "Command:  ssh -i ~/.ssh/kali_private_key lab_admin@`terraform output kali1_public_ip -no-color`"
+echo "======= SSH PRIVATE KEY ======="
+cat /winattacklab/modules/kali1-client/kali_private_key
+
+            ;;
+
+        *)
+            exit 1
+
+esac
+

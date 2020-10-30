@@ -1,8 +1,58 @@
 #!/bin/bash
-echo "========================================"
-echo "deploy-task script"
-echo "========================================"
-for ((COUNT = 10; COUNT <= 20; COUNT++)); do
-  echo "DEPLOY" $COUNT
-  sleep 1
-done
+
+source /winattacklab/.deploy
+source /winattacklab/.destroy
+cd /winattacklab/
+
+case "$DEPLOYED" in
+        init)
+            echo "DEPLOYED=\"deploying\"" > /winattacklab/.deploy
+            echo "`date`: terraform apply --auto-approve"
+            echo "`date`: please wait 30 seconds until the output below appears ..."
+            echo "`date`: terraform apply --auto-approve started" >> /winattacklab/logs/terraform-status.log
+            echo "`date`: terraform apply log" > /winattacklab/logs/terraform-apply.log
+            
+            START=$(date +%s);
+            # 24h
+            # DUR=68400
+
+            # 2h (testing)
+            DUR=7200
+            END=$((START+DUR))
+            echo $START > /winattacklab/terraform.start
+            echo $END > /winattacklab/terraform.end
+            echo "Infrastructure will run until: `date -d @$((START+DUR))`"
+
+            terraform apply -no-color /winattacklab/terraform-plan 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /winattacklab/logs/terraform-apply.log
+            ;;
+
+        deploying)
+            ps -ef|grep "/usr/bin/terraform apply"|grep -v grep > /dev/null
+            RESULT=$?
+            if [ $RESULT -eq 0 ]; then
+                echo "`date`: terraform deployment is still running" >> /winattacklab/logs/terraform-apply.log
+            else
+                echo "`date`: terraform apply has finished" >> /winattacklab/logs/terraform-apply.log
+                echo "DEPLOYED=\"finished\"" > /winattacklab/.deploy
+            fi
+
+			echo "`date`: opening deployment log"
+            sleep 5
+            tail -n +0 -f /winattacklab/logs/terraform-apply.log
+            ;;
+
+        finished)
+        	echo "`date`: terraform deployment has been finished"
+			echo "`date`: opening deployment log"
+            sleep 5
+            cat /winattacklab/logs/terraform-apply.log
+            echo "`date`: terraform deployment has been finished"
+            ;;
+
+        *)
+            exit 1
+
+esac
+
+
+

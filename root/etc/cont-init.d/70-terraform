@@ -1,0 +1,20 @@
+#!/usr/bin/with-contenv bash
+
+cd /winattacklab
+
+# SETUP EMPTY LOGS
+touch /winattacklab/terraform-plan.log
+touch /winattacklab/logs/terraform-apply.log
+touch /winattacklab/logs/terraform-destroy.log
+touch /winattacklab/logs/terraform-ipaddresses.log
+touch /winattacklab/logs/terraform-status.log
+touch /winattacklab/logs/terraform-init.log
+
+# INIT
+terraform init -no-color 2>&1 > /winattacklab/logs/terraform-init.log
+echo "`date`: terraform init executed" >> /winattacklab/logs/terraform-status.log
+
+# CREATE PLAN
+terraform plan -no-color -out /winattacklab/terraform-plan 2>&1 > /winattacklab/terraform-plan.log
+echo "`date`: terraform plan executed" >> /winattacklab/logs/terraform-status.log
+
