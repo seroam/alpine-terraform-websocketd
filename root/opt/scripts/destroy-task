@@ -26,7 +26,7 @@ case "$DEPLOYED" in
                     echo "please wait 60 seconds until the output below appears" 
                     echo "`date`: terraform destroy --auto-approve started" >> /winattacklab/logs/terraform-status.log
                     echo "`date`: terraform destroy log" > /winattacklab/logs/terraform-destroy.log
-                    terraform destroy -no-color --auto-approve 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /winattacklab/logs/terraform-destroy.log
+                    terraform destroy -no-color -auto-approve -compact-warnings 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /winattacklab/logs/terraform-destroy.log
                     echo "`date`: terraform destroy --auto-approve finished" >> /winattacklab/logs/terraform-status.log
                     ;;
                 running)

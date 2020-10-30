@@ -23,7 +23,7 @@ case "$DEPLOYED" in
             echo $END > /winattacklab/terraform.end
             echo "Infrastructure will run until: `date -d @$((START+DUR))`"
 
-            terraform apply -no-color /winattacklab/terraform-plan 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /winattacklab/logs/terraform-apply.log
+            terraform apply -auto-approve -no-color -compact-warnings /winattacklab/terraform-plan 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /winattacklab/logs/terraform-apply.log
             ;;
 
         deploying)
