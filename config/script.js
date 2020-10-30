@@ -1,4 +1,4 @@
-const BASE_SOCKET_URL = 'ws://localhost/api/';
+const BASE_SOCKET_URL = 'wss://SED_BASE_SOCKET_URL/api/';
 const VERBOSE = true;
 const DEFAULT_TOOL = 'Deploy';
 
