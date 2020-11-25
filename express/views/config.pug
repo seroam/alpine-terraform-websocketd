@@ -2,5 +2,14 @@ extends components/layout
 
 block content
     div.d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3.border-bottom
-        h1 Configure
+        h1= title
+    div
+        form(method='post')
+            div.form-group.row
+                label.col-sm-2.col-form-label(for='data') Data
+                div.col-sm-10
+                    input#data.form-control(value=data)
+            div.form-group.row
+                div.col-sm-10
+                    button.btn.btn-primary(type='submit') Save
 

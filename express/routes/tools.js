@@ -1,22 +1,27 @@
 import express from 'express';
+import config from '../config.json';
 
 const toolsRouter = express.Router();
 const tools = {
   deploy: {
     title: 'Deploy',
-    websocketUri: 'ws://localhost:5000/ws/deploy',
+    websocketUri: `${config.wsUrl}/deploy`,
+    verbose: config.verbose,
   },
   destroy: {
     title: 'Destroy',
-    websocketUri: 'ws://localhost:5000/ws/destroy',
+    websocketUri: `${config.wsUrl}/destroy`,
+    verbose: config.verbose,
   },
   log: {
     title: 'Log',
-    websocketUri: 'ws://localhost:5000/ws/log',
+    websocketUri: `${config.wsUrl}/log`,
+    verbose: config.verbose,
   },
   ipaddresses: {
     title: 'IP Addresses',
-    websocketUri: 'ws://localhost:5000/ws/ipaddresses',
+    websocketUri: `${config.wsUrl}/ipaddresses`,
+    verbose: config.verbose,
   },
 };
 

@@ -12,4 +12,14 @@ apiMockRouter.get('/readme', (req, res) => {
   res.send({ markdown });
 });
 
+apiMockRouter.get('/config', (req, res) => {
+  const data = Math.random() * 1000;
+  res.send({ data });
+});
+
+apiMockRouter.post('/config', (req, res) => {
+  const data = 'value';
+  res.send({ data });
+});
+
 export default apiMockRouter;

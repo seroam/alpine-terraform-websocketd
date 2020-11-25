@@ -6,18 +6,25 @@ function fixTerminalHeight() {
   $('.terminal').height(`${terminalHeight}px`);
 }
 
-function setupWebSocket() {
-  const url = $('.terminal').data('wsuri');
+function setupWebSocket(task = '') {
+  const url = `${$('.terminal').data('wsuri')}/${task}`;
+  const verbose = $('.terminal').data('verbose');
   const ws = new WebSocket(url);
   ws.onmessage = (event) => {
     log(event.data);
   };
-  ws.onopen = () => {
-    log('\nCONNECT');
-  };
-  ws.onclose = () => {
-    log('DISCONNECT');
-  };
+  if(verbose) {
+    ws.onopen = () => {
+      log('\nCONNECT');
+    };
+    ws.onclose = () => {
+      log('DISCONNECT');
+    };
+  }
+}
+
+function clear() {
+  $('#shell').text('');
 }
 
 function log(message) {
@@ -38,48 +45,7 @@ $(document).ready(() => {
   setupWebSocket();
 });
 
-
-// TODO: DELETE:
-
-const BASE_SOCKET_URL = 'ws://localhost/api/';
-const VERBOSE = true;
-const DEFAULT_TOOL = 'Deploy';
-
-function getGetParam(paramName) {
-  let result = DEFAULT_TOOL; let
-    tmp = [];
-  location.search.substr(1).split('&').forEach((item) => {
-    tmp = item.split('=');
-    if (tmp[0] === paramName) {
-      result = decodeURIComponent(tmp[1]);
-    }
-  });
-  return result;
-}
-
-function sanitizedTool(tool) {
-  return tool.replace(' ', '').toLowerCase();
-}
-
-function log(message) {
-  $('#shell').append(`${message}\n`);
-  $('.pre-scrollable').scrollTop($('.pre-scrollable').prop('scrollHeight'));
-}
-
-function clear() {
-  $('#shell').text('');
-}
-
-$(document).ready(() => {
-  // const tool = getGetParam('tool');
-  // const saneTool = sanitizedTool(tool);
-  // setupWebSocket(BASE_SOCKET_URL + saneTool);
-  console.log('tool site');
-});
-
 $('#btn-run-task').click(() => {
-  // const tool = getGetParam('tool');
-  // const saneTool = sanitizedTool(tool);
-  // clear();
-  // setupWebSocket(`${BASE_SOCKET_URL}${saneTool}/task`);
+  clear();
+  setupWebSocket('task');
 });
