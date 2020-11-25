@@ -2,8 +2,9 @@
   "name": "websocketd-express",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "start": "node ./bin/www --exec babel-node",
+    "start": "node -r esm ./bin/www --exec babel-node",
     "dev": "nodemon ./bin/www --ext '.js,.json,.pug,.css' --exec babel-node",
     "lint": "eslint . --ext .js --fix"
   },
@@ -16,6 +17,7 @@
     "debug": "~2.6.9",
     "eslint": "^7.14.0",
     "eslint-config-airbnb-base": "^14.2.1",
+    "esm": "^3.2.25",
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
