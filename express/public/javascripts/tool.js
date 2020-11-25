@@ -1,7 +1,7 @@
 function fixTerminalHeight() {
   const windowHeight = $(window).height();
   const terminalBegin = $('.terminal').offset().top;
-  const bottomSpace = 48;
+  const bottomSpace = 42;
   const terminalHeight = windowHeight - terminalBegin - bottomSpace;
   $('.terminal').height(`${terminalHeight}px`);
 }

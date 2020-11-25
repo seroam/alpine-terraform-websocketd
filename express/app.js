@@ -6,6 +6,7 @@ import apiMockRouter from './routes/apimock';
 import configRouter from './routes/config';
 import sitesRouter from './routes/sites';
 import toolsRouter from './routes/tools';
+import config from './config.json';
 
 const app = express();
 
@@ -13,9 +14,8 @@ const app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.locals.appName = config.appName;
 
 // routes
 const mainRouter = express.Router();

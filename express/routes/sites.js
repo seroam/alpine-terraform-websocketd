@@ -1,6 +1,7 @@
 import express from 'express';
 import fetch from 'node-fetch';
 import { Remarkable } from 'remarkable';
+import config from '../config.json';
 
 const sitesRouter = express.Router();
 
@@ -13,7 +14,7 @@ sitesRouter.get('/about', async (req, res) => {
   } catch (error) {
     markdown = error;
   }
-  res.render('site', { title: 'About', markdown });
+  res.render('site', { title: config.appName, markdown });
 });
 
 sitesRouter.get('/readme', async (req, res) => {

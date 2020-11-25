@@ -3,7 +3,7 @@ import express from 'express';
 const apiMockRouter = express.Router();
 
 apiMockRouter.get('/about', (req, res) => {
-  const markdown = '### About Page Content\nThis site is _mocked._';
+  const markdown = '### About Page Content\nThis site is _mocked._\nKali VM, etc.';
   res.send({ markdown });
 });
 
