@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node -r esm ./bin/www --exec babel-node",
+    "start": "node -r esm ./bin/www",
     "dev": "nodemon ./bin/www --ext '.js,.json,.pug,.css' --exec babel-node",
     "lint": "eslint . --ext .js --fix"
   },

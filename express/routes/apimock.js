@@ -1,5 +1,14 @@
 import express from 'express';
 
+function getFakeConfig() {
+  return {
+    tenant_id: Math.round(Math.random() * 1000000000),
+    subscription_id: Math.round(Math.random() * 1000000000),
+    client_id: Math.round(Math.random() * 1000000000),
+    client_secret: Math.round(Math.random() * 1000000000),
+  };
+}
+
 const apiMockRouter = express.Router();
 
 apiMockRouter.get('/about', (req, res) => {
@@ -13,13 +22,11 @@ apiMockRouter.get('/readme', (req, res) => {
 });
 
 apiMockRouter.get('/config', (req, res) => {
-  const data = Math.random() * 1000;
-  res.send({ data });
+  res.send({ ...getFakeConfig() });
 });
 
 apiMockRouter.post('/config', (req, res) => {
-  const data = 'value';
-  res.send({ data });
+  res.send({ ...getFakeConfig() });
 });
 
 export default apiMockRouter;

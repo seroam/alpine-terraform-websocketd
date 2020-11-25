@@ -1,6 +1,5 @@
 import express from 'express';
 import path from 'path';
-import logger from 'morgan';
 import createError from 'http-errors';
 import apiMockRouter from './routes/apimock';
 import configRouter from './routes/config';
@@ -13,7 +12,6 @@ const app = express();
 // app setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
-app.use(logger('dev'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.locals.appName = config.appName;
 
