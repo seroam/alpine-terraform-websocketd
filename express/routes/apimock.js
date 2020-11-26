@@ -25,8 +25,9 @@ apiMockRouter.get('/config', (req, res) => {
   res.send({ ...getFakeConfig() });
 });
 
-apiMockRouter.post('/config', (req, res) => {
-  res.send({ ...getFakeConfig() });
+apiMockRouter.post('/config', async (req, res) => {
+  req.body.tenant_id = `u${req.body.tenant_id}`;
+  res.send({ ...req.body });
 });
 
 export default apiMockRouter;
