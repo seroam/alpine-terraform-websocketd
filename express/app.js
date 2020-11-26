@@ -18,6 +18,13 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.locals.appName = config.appName;
 
+app.use((req, res, next) => {
+  if (!req.url.includes('apimock')) {
+    app.locals.current = req.url;
+  }
+  next();
+});
+
 // routes
 const mainRouter = express.Router();
 mainRouter.get('/', (req, res) => {
