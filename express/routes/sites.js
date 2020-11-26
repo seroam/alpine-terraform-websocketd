@@ -1,26 +1,26 @@
 import express from 'express';
 import fetch from 'node-fetch';
 import { Remarkable } from 'remarkable';
-import config from '../config.json';
+import configJson from '../config.json';
 
 const sitesRouter = express.Router();
 
 sitesRouter.get('/about', async (req, res) => {
   let markdown = 'No information found.';
   try {
-    const response = await fetch('http://localhost:3000/apimock/about');
+    const response = await fetch(`${configJson.apiUrl}/about`);
     const parsed = await response.json();
     markdown = new Remarkable().render(parsed.markdown);
   } catch (error) {
     markdown = error;
   }
-  res.render('site', { title: config.appName, markdown });
+  res.render('site', { title: configJson.appName, markdown });
 });
 
 sitesRouter.get('/readme', async (req, res) => {
   let markdown = 'No information found.';
   try {
-    const response = await fetch('http://localhost:3000/apimock/readme');
+    const response = await fetch(`${configJson.apiUrl}/readme`);
     const parsed = await response.json();
     markdown = new Remarkable().render(parsed.markdown);
   } catch (error) {

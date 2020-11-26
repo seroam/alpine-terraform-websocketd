@@ -1,5 +1,6 @@
 import express from 'express';
 import fetch from 'node-fetch';
+import configJson from '../config.json';
 
 async function getConfigFromResponse(response) {
   const parsed = await response.json();
@@ -15,7 +16,7 @@ const configRouter = express.Router();
 
 configRouter.get('/', async (req, res) => {
   try {
-    const response = await fetch('http://localhost:3000/apimock/config');
+    const response = await fetch(`${configJson.apiUrl}/config`);
     const config = await getConfigFromResponse(response);
     res.render('config', { title: 'Configuration', config });
   } catch (error) {
@@ -32,7 +33,7 @@ configRouter.post('/', async (req, res) => {
       client_id: req.body.clientId,
       client_secret: req.body.clientSecret,
     };
-    const response = await fetch('http://localhost:3000/apimock/config', {
+    const response = await fetch(`${configJson.apiUrl}/config`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
