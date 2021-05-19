@@ -1,19 +1,11 @@
 #!/bin/bash
 
-source /winattacklab/.deploy
-source /winattacklab/.destroy
-cd /winattacklab
+cd /winattacklab/
 
-echo "`date`: terraform log"
+echo "=========================="
+echo "executing /opt/scripts/log-task"
 
-echo "====== terraform state list ====="
-terraform state list -no-color
 
-echo "====== terraform log ====="
-terraform output -no-color
 
-echo "====== terraform version ====="
-terraform version -no-color
 
-echo "====== history  ====="
-tail -n +0 -f /winattacklab/logs/terraform-status.log
+

@@ -1,6 +1,0 @@
-{
-    "apiUrl": "http://localhost:3000/apimock",
-    "wsUrl": "ws://localhost:5000/api",
-    "verbose": "true",
-    "appName": "WinAttackLab Express"
-}

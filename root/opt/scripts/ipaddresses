@@ -1,36 +1,11 @@
 #!/bin/bash
-echo "public ip addresses"
 
-source /winattacklab/.deploy
-source /winattacklab/.destroy
 cd /winattacklab/
 
-case "$DEPLOYED" in
-        init)
-            echo "`date`: terraform deplyoment not yet startet"
-            ;;
+echo "=========================="
+echo "executing /opt/scripts/ipaddresses"
 
-        deploying)
-            ps -ef|grep "/usr/bin/terraform apply" | grep -v grep > /dev/null
-            RESULT=$?
-            if [ $RESULT -eq 0 ]; then
-                echo "`date`: terraform deployment is still running"
-            else
-                echo "`date`: terraform apply has finished"
-            fi
 
-	    terraform output -no-color 2>&1 | tee -a /winattacklab/logs/terraform-ipaddresses.log
-	    echo "`date`: if you want to see the login details, click the \"Run Task\" button"
-            ;;
 
-        finished)
-	    echo "`date`: terraform deployment has been finished"
-	    terraform output -no-color 2>&1 | tee -a /winattacklab/logs/terraform-ipaddresses.log
-	    echo "`date`: if you want to see the login details, click on \"Run Task\" button"
-            ;;
 
-        *)
-            exit 1
-
-esac
 

@@ -6,7 +6,7 @@ RUN go get github.com/joewalnes/websocketd
 FROM hackinglab/alpine-base:3.2
 MAINTAINER Ivan Buetler <ivan.buetler@compass-security.com
 
-ENV TERRAFORM_VERSION=0.13.5
+ENV TERRAFORM_VERSION=0.15.3
 
 COPY --from=websocketd /go/bin/websocketd /usr/bin/websocketd
 
@@ -14,13 +14,15 @@ COPY --from=websocketd /go/bin/websocketd /usr/bin/websocketd
 ADD root /
 
 RUN apk add --no-cache --update nginx \
-	vim \
+    vim \
     nginx \
     curl \
     util-linux \
     dcron \
+    screen \
     openssl \
     python3 \
+    proxychains-ng \
     py-pip && \
     if [ ! -e /usr/bin/python ]; then ln -sf python3 /usr/bin/python ; fi && \
     \

@@ -1,68 +1,11 @@
 #!/bin/bash
 
-source /winattacklab/.deploy
-source /winattacklab/.destroy
-cd /winattacklab
+cd /winattacklab/
 
-case "$DEPLOYED" in
-        init)
-            echo "`date`: terraform deplyoment not yet startet"
-            ;;
-
-        deploying)
-            ps -ef|grep "/usr/bin/terraform apply" | grep -v grep > /dev/null
-            RESULT=$?
-            if [ $RESULT -eq 0 ]; then
-                echo "`date`: terraform deployment is still running"
-            else
-                echo "`date`: terraform apply has finished"
-            fi
-
-echo "`date`: terraform log"
-
-echo "====== terraform log ====="
-terraform output -no-color
-
-echo "====== terraform version ====="
-terraform version -no-color
+echo "=========================="
+echo "executing /opt/scripts/log"
 
 
-            ;;
-
-        finished)
-	    echo "`date`: terraform deployment has been finished"
-
-echo "`date`: terraform log"
-
-echo "====== terraform log ====="
-terraform output -no-color
-
-echo "====== terraform version ====="
-terraform version -no-color
-
-            ;;
-
-        *)
-            exit 1
-
-esac
 
 
-echo "====== history  ====="
-tail -n +0 -f /winattacklab/logs/terraform-status.log
-
-
-echo "====== auto destroyment   ====="
-if [ -e /winattacklab/terraform.end ]; then
-  START=$(cat "/winattacklab/terraform.start")
-  END=$(cat "/winattacklab/terraform.end")
-  NOW=$(date +%s);
-
-  if [ $((END-NOW)) -gt 0 ]; then
-    echo "`date`: auto destroyment will run on `date -d @$((END))`"
-    echo "`date`: auto destroyment will run in $((END-NOW)) seconds"
-  else
-    echo "`date`: terraform deployment expired - will destroy now"
-  fi
-fi
 

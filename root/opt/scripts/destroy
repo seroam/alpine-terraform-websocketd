@@ -1,24 +1,11 @@
 #!/bin/bash
 
-source /winattacklab/.deploy
-source /winattacklab/.destroy
 cd /winattacklab/
 
-case "$DEPLOYED" in
-        init)
-            echo "`date`: terraform deplyoment not yet startet - cannot destroy"
-            ;;
+echo "=========================="
+echo "executing /opt/scripts/destroy"
 
-        deploying)
-            echo "`date`: terraform deployment currently running - cannot destroy"
-            ;;
 
-        finished)
-			echo "`date`: terraform deployment has been finished"
-            echo "`date`: click on the \"Run Task\" button if you really want to destroy"
-            ;;
 
-        *)
-            exit 1
 
-esac
+

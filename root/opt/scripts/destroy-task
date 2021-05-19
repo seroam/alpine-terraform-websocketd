@@ -1,65 +1,11 @@
 #!/bin/bash
 
-source /winattacklab/.deploy
-source /winattacklab/.destroy
 cd /winattacklab/
 
-case "$DEPLOYED" in
-        init)
-            echo "`date`: terraform deplyoment not yet startet - cannot destroy"
-            ;;
+echo "=========================="
+echo "executing /opt/scripts/destroy-task"
 
-        deploying)
-            echo "`date`: terraform deployment currently running - cannot destroy"
-            ;;
 
-        finished)
-			echo "`date`: terraform deployment will be destroyed"
-            case "$DESTROYED" in
-                init)
 
-                    rm /winattacklab/terraform.start
-                    rm /winattacklab/terraform.end
-
-                    echo "DESTROYED=\"running\"" > /winattacklab/.destroy
-                    echo "terraform destroy --auto-approve"
-                    echo "please wait 60 seconds until the output below appears" 
-                    echo "`date`: terraform destroy --auto-approve started" >> /winattacklab/logs/terraform-status.log
-                    echo "`date`: terraform destroy log" > /winattacklab/logs/terraform-destroy.log
-                    terraform destroy -no-color -auto-approve -compact-warnings 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /winattacklab/logs/terraform-destroy.log
-                    echo "`date`: terraform destroy --auto-approve finished" >> /winattacklab/logs/terraform-status.log
-                    ;;
-                running)
-                    ps -ef|grep "/usr/bin/terraform destroy"|grep -v grep > /dev/null
-                    RESULT=$?
-                    if [ $RESULT -eq 0 ]; then
-                        echo "`date`: terraform destroy is still running" >> /winattacklab/logs/terraform-destroy.log
-                    else
-                        echo "`date`: terraform destroy has finished" >> /winattacklab/logs/terraform-destroy.log
-                        echo "DESTROYED=\"finished\"" > /winattacklab/.destroy
-                    fi
-
-                   	echo "`date`: opening destroy log"
-                    sleep 5
-                    tail -n +0 -f /winattacklab/logs/terraform-destroy.log
-                    ;;
-                finished)
-                    echo "terraform destroy has been finished"
-                   	echo "`date`: opening destroy log"
-                    sleep 5
-                    cat /winattacklab/logs/terraform-destroy.log
-                    echo "terraform destroy has been finished"
-                    ;;
-                *)
-                    exit 1
-                    ;;
-	        esac
-            ;;
-
-        *)
-            exit 1
-            ;;
-
-esac
 
 
