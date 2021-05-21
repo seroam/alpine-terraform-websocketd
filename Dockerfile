@@ -21,6 +21,7 @@ RUN apk add --no-cache --update nginx \
     dcron \
     screen \
     openssl \
+    openssh \
     python3 \
     proxychains-ng \
     py-pip && \
