@@ -4,5 +4,8 @@ services:
   deployment-manager:
     build: .
     image: hackinglab/alpine-terraform-websocketd:3.2
+    environment:
+      - S6_KILL_FINISH_MAXTIME=3600000
+    stop_grace_period: 1h
     ports:
       - 80:80
