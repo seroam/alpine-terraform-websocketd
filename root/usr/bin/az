@@ -1,0 +1,3 @@
+#!/usr/bin/with-contenv bash
+
+/opt/azure-cli/bin/python -m azure.cli "$@"

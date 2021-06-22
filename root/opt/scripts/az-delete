@@ -1,0 +1,55 @@
+#!/bin/bash
+
+source /winattacklab/proxy.env
+source /winattacklab/az_login
+cd /winattacklab
+
+echo "`date`: az_delete started" | tee -a /winattacklab/logs/terraform-status.log
+echo "`date`: az_delete started" >> /winattacklab/logs/terraform-destroy.log
+echo "`date`: az_delete started" >> /winattacklab/logs/az.log
+
+if [ $az_available != "true" ]; then
+    /etc/cont-init.d/75-azure
+    if [ $? -ne 0 ]; then
+    echo "`date`: Unable to log in to Azure."  | tee -a /winattacklab.logs/az.log
+        exit 1
+    fi
+fi
+
+if [ -e /winattacklab/terraform.tfstate ]; then
+    resource_group=`terraform state show 'azurerm_resource_group.winattacklabgroup' | grep id  | cut -d'/' -f5- | cut -d '"' -f1`
+    echo "`date`: Resource group according to tfstate: $resource_group" | tee -a /winattacklab/logs/az.log
+
+    prov_state=`az group list --query "[?name == '$resource_group'].properties.provisioningState"`
+    echo "`date`: Privisioning state: $prov_state" | tee -a /winattacklab/logs/az.log
+    case "$prov_state" in
+        *Deleting*)
+            echo "`date`: Resource group is already being destroyed.\nDeleting tfstate file."
+            rm /winattacklab/terraform.tfstate
+            exit 0
+            ;;
+        [])
+            echo "`date`: Resource group with name $resource_group was not found.\nDeleting tfstate file."
+            rm /winattacklab/terraform.tfstate
+            exit 0
+            ;;
+        *) # CANCELED, CREATING, FAILED, SUCCEEDED, UPDATING
+            echo "`time`: Neither deleting nor not found. Continuing..." | tee -a /winattacklab/logs/az.log
+    esac
+
+    echo "`date`: az group delete --name $resource_group --no-wait -y" | tee -a /winattacklab/logs/az.log
+    az group delete --name $resource_group --no-wait -y | tee -a /winattacklab/logs/az.log
+    if [ $? -eq 0 ]; then
+        echo "`date`: Resource group deletion started." | tee -a /winattacklab/logs/az.log
+        echo "`date`: Deleting tfstate file." | tee -a /winattacklab/az.log
+        rm /winattacklab/terraform.tfstate | tee -a /winattacklab/logs/az.log
+        exit 0
+    else
+        echo "`date`: Unable to delete Resource Group." | tee -a /winattacklab/logs/az.log
+        return -1
+    fi
+
+else
+    echo "`date`: terraform.tfstate not found." | tee -a /winattacklab/logs/az.log
+    exit 0
+fi
