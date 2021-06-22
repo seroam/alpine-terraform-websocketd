@@ -1,0 +1,17 @@
+#!/usr/bin/with-contenv bash
+
+cd /winattacklab
+
+# SETUP ACCOUNT
+myusername="lab_admin"
+mypassword=`pwgen 10 1 -c 1 -n 1`
+
+sed -e "s/LAB_ADMIN/$myusername/g" /winattacklab/terraform.tfvars > /winattacklab/terraform.tfvars.neu
+sed -e "s/LAB_PASSWORD/$mypassword/g" /winattacklab/terraform.tfvars.neu > /winattacklab/terraform.tfvars
+
+sed -i -e "s/LAB_ADMIN/$myusername/g" /opt/scripts/ipaddresses-task
+sed -i -e "s/LAB_PASSWORD/$mypassword/g" /opt/scripts/ipaddresses-task
+
+echo "Username: $myusername" > /tmp/credentials.txt
+echo "Password: $mypassword" >> /tmp/credentials.txt
+echo "===" >> /tmp/credentials.txt

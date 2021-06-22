@@ -1,0 +1,37 @@
+#!/usr/bin/with-contenv bash
+
+cd /winattacklab
+
+# SETUP PROXY
+echo "export http_proxy=$http_proxy" >/winattacklab/proxy.env
+echo "export HTTP_PROXY=$http_proxy" >>/winattacklab/proxy.env
+echo "export https_proxy=$https_proxy" >>/winattacklab/proxy.env
+echo "export HTTPS_PROXY=$https_proxy" >>/winattacklab/proxy.env
+
+source /winattacklab/proxy.env
+
+# SETUP EMPTY LOGS
+touch /winattacklab/terraform-plan.log
+touch /winattacklab/logs/terraform-apply.log
+touch /winattacklab/logs/terraform-destroy.log
+touch /winattacklab/logs/terraform-ipaddresses.log
+touch /winattacklab/logs/terraform-status.log
+touch /winattacklab/logs/terraform-init.log
+
+# SETUP DATE
+mydate=`date +%Y-%m-%d--%H-%M-%S`
+sed -i -e "s/E1DATE/$mydate/g" main.tf
+
+# INIT
+terraform init -no-color 2>&1 >/winattacklab/logs/terraform-init.log
+echo "$(date): terraform init executed" >>/winattacklab/logs/terraform-status.log 2>&1
+
+# CREATE PLAN
+terraform plan -no-color -out /winattacklab/terraform-plan >/winattacklab/logs/terraform-plan.log 2>&1
+if [ $? -ne 0 ]; then
+    echo "$(date): Unable to create Terraform plan. Possibly wrong credentials?" >>/winattacklab/logs/terraform-status.log
+    echo "$(date): Unable to create Terraform plan. Possibly wrong credentials?" >>/winattacklab/logs/terraform-plan.log
+    touch /winattacklab/plan.fail
+else
+    echo "$(date): terraform plan executed" >>/winattacklab/logs/terraform-status.log
+fi
