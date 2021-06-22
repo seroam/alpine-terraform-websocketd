@@ -35,3 +35,11 @@ if [ $? -ne 0 ]; then
 else
     echo "$(date): terraform plan executed" >>/winattacklab/logs/terraform-status.log
 fi
+
+if [ ! -e /winattacklab/.deploy ]; then
+    echo "DEPLOYED=\"init\"" > /winattacklab/.deploy
+fi
+
+if [ ! -e /winattacklab/.destroy ]; then
+    echo "DESTROYED=\"init\"" > /winattacklab/.destroy
+fi
