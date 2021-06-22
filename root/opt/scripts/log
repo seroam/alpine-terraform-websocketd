@@ -1,11 +1,151 @@
 #!/bin/bash
 
+if [ ! -e /winattacklab ]; then
+    echo "=========================="
+    echo "executing /opt/scripts/log"
+    echo "No content found."
+    exit 0
+fi
+
+source /winattacklab/.deploy
+source /winattacklab/.destroy
+source /winattacklab/proxy.env
+
 cd /winattacklab/
 
-echo "=========================="
-echo "executing /opt/scripts/log"
+case "$DEPLOYED" in
+init)
+    echo "$(date): terraform deploy not yet started" >>/winattacklab/logs/terraform-logs.log
+    echo "$(date): terraform deploy not yet started"
+    if [ -e /winattacklab/plan.fail ]; then
+        echo "$(date): Failed to create terraform plan."
+        echo "$(date): Opening plan log"
+        sleep 2
+        cat /winattacklab/logs/terraform-plan.log
+    else
+        echo "$(date): if you want to deploy, click on \"Run Task\" in the Deploy menu"
+    fi
+    ;;
 
+deploying)
+    ps -ef | grep "/usr/bin/terraform apply" | grep -v grep >/dev/null
+    RESULT=$?
+    if [ $RESULT -eq 0 ]; then
+        echo "$(date): terraform apply is running" >>/winattacklab/logs/terraform-logs.log
+        echo "$(date): terraform apply is running"
+        echo "====== Azure Resource Group ====="
+        terraform state show 'azurerm_resource_group.winattacklabgroup' | grep id | cut -d'/' -f5- | cut -d '"' -f1
+        echo "================================="
+        cat /tmp/start-date.log
+        echo "$(date): please wait until the infrastructure is fully deployed"
+        echo "$(date): loading log file"
+        sleep 3
+        tail -n +0 -f /winattacklab/logs/terraform-deploy.log
+    else
+        echo "$(date): terraform apply not running - deployment should have been finished - let's check ..." >>/winattacklab/logs/terraform-logs.log
+        echo "$(date): terraform apply not running - deployment should have been finished - let's check ..."
 
+        terraform state show 'azurerm_resource_group.winattacklabgroup' >>/winattacklab/logs/terraform-logs.log
+        R1=$?
+        if [ $R1 -eq 0 ]; then
+            echo "$(date): deploy was successful: infrastructure running" >>/winattacklab/logs/terraform-logs.log
+            echo "$(date): deploy was successful: infrastructure running"
+            echo "====== Azure Resource Group ====="
+            terraform state show 'azurerm_resource_group.winattacklabgroup' | grep id | cut -d'/' -f5- | cut -d '"' -f1
+            echo "================================="
+            echo "DEPLOYED=\"finished\"" >/winattacklab/.deploy
+            terraform output -no-color 2>&1 | tee -a /winattacklab/logs/terraform-ipaddresses.log
 
+            if [ -e /winattacklab/terraform.end ]; then
+                /opt/scripts/show-when-cron-will-destroy-infrastructure
+            fi
 
+        else
+            echo "$(date): deploy error: infrastructure not running" >>/winattacklab/logs/terraform-logs.log
+            echo "$(date): deploy error: infrastructure not running"
+        fi
 
+    fi
+
+    ;;
+
+finished)
+    case "$DESTROYED" in
+    init)
+        echo "$(date): terraform is fully deployed" >>/winattacklab/logs/terraform-logs.log
+        echo "$(date): terraform is fully deployed"
+        echo "$(date): user did not click on destroy" >>/winattacklab/logs/terraform-logs.log
+        echo "$(date): user did not click on destroy"
+        echo "====== Azure Resource Group ====="
+        terraform state show 'azurerm_resource_group.winattacklabgroup' | grep id | cut -d'/' -f5- | cut -d '"' -f1
+        echo "================================="
+
+        terraform output -no-color 2>&1 | tee -a /winattacklab/logs/terraform-ipaddresses.log
+
+        if [ -e /winattacklab/terraform.end ]; then
+            /opt/scripts/show-when-cron-will-destroy-infrastructure
+        fi
+
+        echo "================================="
+        echo "$(date): click on \"Run Task\" in the Ip Addresses menu to get the login credentials"
+        echo "================================="
+        sleep 3
+
+        echo "$(date): loading deploy log file"
+        sleep 3
+        tail -n +0 -f /winattacklab/logs/terraform-deploy.log
+
+        ;;
+
+    \
+        running)
+        ps -ef | grep "/usr/bin/terraform destroy" | grep -v grep >/dev/null
+        RESULT=$?
+        if [ $RESULT -eq 0 ]; then
+            echo "$(date): user clicked on the destroy button" >>/winattacklab/logs/terraform-logs.log
+            echo "$(date): user clicked on the destroy button"
+            echo "$(date): terraform destroy has started" >>/winattacklab/logs/terraform-logs.log
+            echo "$(date): terraform destroy has started"
+            echo "$(date): loading destroy log"
+            sleep 3
+            tail -n +0 -f /winattacklab/logs/terraform-destroy.log
+        else
+            echo "$(date): user clicked on the destroy button" >>/winattacklab/logs/terraform-logs.log
+            echo "$(date): user clicked on the destroy button"
+
+            terraform state show 'azurerm_resource_group.winattacklabgroup' >>/winattacklab/logs/terraform-logs.log
+            R1=$?
+            if [ $R1 -eq 0 ]; then
+                echo "$(date): destroy not finished yet: infrastructure still destroying" >>/winattacklab/logs/terraform-logs.log
+                echo "$(date): destroy not finished yet: infrastructure still destroying"
+                echo "$(date): click on the \"Run Task\" in the Log menu to see the destroy log"
+            else
+                echo "$(date): infrastructure is fully down" >>/winattacklab/logs/terraform-logs.log
+                echo "$(date): infrastructure is fully down"
+                echo "DESTROYED=\"finished\"" >/winattacklab/.destroy
+                echo "DEPLOYED=\"init\"" >/winattacklab/.deploy
+            fi
+
+        fi
+        ;;
+
+    finished)
+        echo "$(date): destroy successfully finished - will reset deployment to init" >>/winattacklab/logs/terraform-logs.log
+        echo "$(date): destroy successfully finished - will reset deployment to init"
+        echo "DEPLOYED=\"init\"" >/winattacklab/.deploy
+        echo "DESTROYED=\"init\"" >/winattacklab/.destroy
+        echo "$(date): loading destroy log"
+        sleep 3
+        tail -n +0 -f /winattacklab/logs/terraform-destroy.log
+        ;;
+    *)
+        exit 1
+        ;;
+    esac
+    ;;
+
+*)
+    exit 1
+    ;;
+
+esac
