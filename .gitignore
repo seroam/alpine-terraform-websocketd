@@ -1,6 +1,4 @@
 *Zone.Identifier
 root/winattacklab/
-!root/winattacklab/.deploy
-!root/winattacklab/.destroy
 config/terraform.tfvars
 
