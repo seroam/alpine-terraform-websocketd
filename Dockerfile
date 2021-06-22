@@ -6,6 +6,8 @@ RUN go get github.com/joewalnes/websocketd
 FROM hackinglab/alpine-base:3.2
 LABEL maintainer=<ivan.buetler@compass-security.com>
 
+ENV TERRAFORM_VERSION=0.15.3
+
 COPY --from=websocketd /go/bin/websocketd /usr/bin/websocketd
 
 # Add the files
