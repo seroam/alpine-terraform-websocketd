@@ -17,6 +17,9 @@ sleep 2
 
 echo "$(date): terraform deploy button clicked" >>/winattacklab/logs/terraform-deploy.log
 
+resource_group_name=`grep -re "^resource \"azurerm_resource_group\"" *.tf | awk -F"\"" '{print $4}'`
+echo "Resource group variable name: $resource_group_name."
+
 case "$DEPLOYED" in
 init)
     if [ -e /winattacklab/plan.fail ]; then
@@ -60,7 +63,7 @@ deploying)
     else
         echo "$(date): terraform apply job has finished"
         echo "$(date): terraform apply job has finished" >>/winattacklab/logs/terraform-deploy.log
-        terraform state show 'azurerm_resource_group.winattacklabgroup' >>/winattacklab/logs/terraform-deploy.log
+        terraform state show "azurerm_resource_group.$resource_group_name" >>/winattacklab/logs/terraform-deploy.log
         R1=$?
         if [ $R1 -eq 0 ]; then
             echo "$(date): deploy was successful: infrastructure running"
@@ -73,7 +76,7 @@ deploying)
     fi
 
     echo "====== Azure Resource Group ====="
-    terraform state show 'azurerm_resource_group.winattacklabgroup' | grep id | cut -d'/' -f5- | cut -d '"' -f1
+    terraform state show "azurerm_resource_group.$resource_group_name" | grep id | cut -d'/' -f5- | cut -d '"' -f1
     echo "================================="
     sleep 3
 
@@ -88,7 +91,7 @@ finished)
     echo "$(date): terraform deploy has been finished" >>/winattacklab/logs/terraform-deploy.log
 
     echo "====== Azure Resource Group ====="
-    terraform state show 'azurerm_resource_group.winattacklabgroup' | grep id | cut -d'/' -f5- | cut -d '"' -f1
+    terraform state show "azurerm_resource_group.$resource_group_name" | grep id | cut -d'/' -f5- | cut -d '"' -f1
     echo "================================="
     sleep 3
 

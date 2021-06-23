@@ -16,8 +16,11 @@ if [ $az_available != "true" ]; then
     fi
 fi
 
+resource_group_name=`grep -re "^resource \"azurerm_resource_group\"" *.tf | awk -F"\"" '{print $4}'`
+echo "Resource group variable name: $resource_group_name."
+
 if [ -e /winattacklab/terraform.tfstate ]; then
-    resource_group=`terraform state show 'azurerm_resource_group.winattacklabgroup' | grep id  | cut -d'/' -f5- | cut -d '"' -f1`
+    resource_group=`terraform state show "azurerm_resource_group.$resource_group_name" | grep id  | cut -d'/' -f5- | cut -d '"' -f1`
     echo "`date`: Resource group according to tfstate: $resource_group" | tee -a /winattacklab/logs/az.log
 
     prov_state=`az group list --query "[?name == '$resource_group'].properties.provisioningState"`
@@ -34,7 +37,7 @@ if [ -e /winattacklab/terraform.tfstate ]; then
             exit 0
             ;;
         *) # CANCELED, CREATING, FAILED, SUCCEEDED, UPDATING
-            echo "`time`: Neither deleting nor not found. Continuing..." | tee -a /winattacklab/logs/az.log
+            echo "`date`: Found and not deleting. Continuing..." | tee -a /winattacklab/logs/az.log
     esac
 
     echo "`date`: az group delete --name $resource_group --no-wait -y" | tee -a /winattacklab/logs/az.log

@@ -16,6 +16,9 @@ cd /winattacklab/
 echo "$(date): Deployment Manager Version 2021-04-16-R104"
 sleep 2
 
+resource_group_name=`grep -re "^resource \"azurerm_resource_group\"" *.tf | awk -F"\"" '{print $4}'`
+echo "Resource group variable name: $resource_group_name."
+
 case "$DEPLOYED" in
 init)
     echo "$(date): terraform deploy not yet started - cannot destroy"
@@ -28,7 +31,7 @@ deploying)
     pkill terraform
 
     echo "====== Azure Resource Group ====="
-    terraform state show 'azurerm_resource_group.winattacklabgroup' | grep id | cut -d'/' -f5- | cut -d '"' -f1
+    terraform state show "azurerm_resource_group.$resource_group_name" | grep id | cut -d'/' -f5- | cut -d '"' -f1
     echo "================================="
     ;&
 
@@ -75,7 +78,7 @@ deploying | finished)
         else
             echo "$(date): terraform destroy was executed on: $(cat /tmp/start-stop.log) but not finished yet"
             echo "$(date): terraform destroy was executed on: $(cat /tmp/start-stop.log) but not finished yet" >>/winattacklab/logs/terraform-destroy.log
-            terraform state show 'azurerm_resource_group.winattacklabgroup' >>/winattacklab/logs/terraform-destroy.log
+            terraform state show "azurerm_resource_group.$resource_group_name" >>/winattacklab/logs/terraform-destroy.log
             R1=$?
             if [ $R1 -eq 0 ]; then
                 echo "$(date): destroy was not yet successul: infrastructure still running"
