@@ -1,0 +1,27 @@
+#!/usr/bin/with-contenv bash
+
+cd /winattacklab
+
+# ADD SSH KEYS
+ssh-keygen -q -f id_rsa -N ""
+
+cp id_rsa ./modules/linux-vm/id_rsa
+chmod 600 ./modules/linux-vm/id_rsa
+
+cp id_rsa.pub ./modules/linux-vm/id_rsa.pub
+chmod 640 ./modules/linux-vm/id_rsa.pub
+
+
+
+# SETUP ACCOUNT
+username="admin"
+password="password"
+
+# Replace placeholders in terraform.tfvars with actual values
+sed -e "s/ADMIN_USERNAME/$username/g" /winattacklab/terraform.tfvars > /winattacklab/terraform.tfvars.neu
+sed -e "s/ADMIN_PASSWORD/$password/g" /winattacklab/terraform.tfvars.neu > /winattacklab/terraform.tfvars
+
+# Write username and password to file to later print them in the IP Addresses task
+echo "Username: $username" > /tmp/credentials.txt
+echo "Password: $password" >> /tmp/credentials.txt
+echo "===" >> /tmp/credentials.txt
