@@ -44,10 +44,7 @@ init)
     echo "$(date): please click on the \"Log\" menu to see the deploy log file"
 
     START=$(date +%s)
-    # 24h
-    # DUR=68400
-
-    # 2h (testing)
+    
     DUR=43200
     END=$((START + DUR))
     echo $START >/terraform/terraform.start
