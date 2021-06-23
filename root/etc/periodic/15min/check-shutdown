@@ -38,12 +38,11 @@ if [ -e /winattacklab/terraform.end ]; then
 
   if [ $((END - NOW)) -gt 0 ]; then
     echo "$(date): will not destroy deployment" >>/winattacklab/logs/check-deployment.log
-    echo "$(date): auto destroyment will run after $(date -d @$((END)))" >>/winattacklab/logs/check-deployment.log
-    echo "$(date): auto destroyment will run in $((END - NOW)) seconds" >>/winattacklab/logs/check-deployment.log
+    echo "$(date): auto destruction will run after $(date -d @$((END)))" >>/winattacklab/logs/check-deployment.log
+    echo "$(date): auto destruction will run in $((END - NOW)) seconds" >>/winattacklab/logs/check-deployment.log
   else
-    echo "$(date): auto destroyment will should have been run on $(date -d @$((END)))" >>/winattacklab/logs/check-deployment.log
+    echo "$(date): auto destruction should have been run on $(date -d @$((END)))" >>/winattacklab/logs/check-deployment.log
     echo "$(date): terraform deployment expired - will destroy now" >>/winattacklab/logs/check-deployment.log
-    echo "$(date): auto destroyment will run in $((END - NOW)) seconds" >>/winattacklab/logs/check-deployment.log
     mv /winattacklab/terraform.start /winattacklab/terraform.start.$END
     mv /winattacklab/terraform.end /winattacklab/terraform.end.$END
 
@@ -62,7 +61,7 @@ if [ -e /tmp/terraform.destroy.cron ]; then
   if [ $RESULT -eq 0 ]; then
     echo "$(date): cron: terraform destroy is still running" >>/winattacklab/logs/check-deployment.log
   else
-    echo "$(date): cron: terraform destroyment currently not running" >>/winattacklab/logs/check-deployment.log
+    echo "$(date): cron: terraform destroy currently not running" >>/winattacklab/logs/check-deployment.log
     destroy_with_fallback
     if [ -e /winattacklab/terraform.tfstate ]; then
       echo "$(date): cron: destroy was not yet successul: infrastructure still running" >>/winattacklab/logs/check-deployment.log
