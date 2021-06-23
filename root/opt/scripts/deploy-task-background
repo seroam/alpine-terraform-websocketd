@@ -1,9 +1,8 @@
 #!/bin/bash
 
-source /winattacklab/.deploy
-source /winattacklab/proxy.env
+source /terraform/.deploy
+source /terraform/proxy.env
 
-cd /winattacklab/
+cd /terraform/
 
-terraform apply -auto-approve -no-color -compact-warnings /winattacklab/terraform-plan 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /winattacklab/logs/terraform-deploy.log
-
+terraform apply -auto-approve -no-color -compact-warnings /terraform/terraform-plan 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /terraform/logs/terraform-deploy.log

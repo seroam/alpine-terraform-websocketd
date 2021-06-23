@@ -1,58 +1,66 @@
 #!/bin/bash
 
-source /winattacklab/.deploy
-source /winattacklab/.destroy
-source /winattacklab/proxy.env
+source /terraform/.deploy
+source /terraform/.destroy
+source /terraform/proxy.env
 
-cd /winattacklab/
+cd /terraform/
 
 function destroy_with_fallback {
-    echo "DESTROYED=\"running\"" >/winattacklab/.destroy
-    echo "$(date): az group delete started" >>/winattacklab/logs/terraform-status.log
-    echo "$(date): az group delete started" >>/winattacklab/logs/terraform-destroy.log
-    echo "$(date): az group delete started" >>/winattacklab/logs/terraform-destroy.log
+    echo "DESTROYED=\"running\"" >/terraform/.destroy
+    echo "$(date): az group delete started" >>/terraform/logs/terraform-status.log
+    echo "$(date): az group delete started" >>/terraform/logs/terraform-destroy.log
+    echo "$(date): az group delete started" >>/terraform/logs/terraform-destroy.log
     /opt/scripts/az-delete
     if [ $? -ne 0 ]; then
-        echo "$(date): Unable to destroy via Azure CLI. Falling back to terraform." >>/winattacklab/logs/terraform-status.log
-        echo "$(date): Unable to destroy via Azure CLI. Falling back to terraform." >>/winattacklab/logs/terraform-destroy.log
-        echo "$(date): terraform destroy log" >>/winattacklab/logs/terraform-destroy.log
+        echo "$(date): Unable to destroy via Azure CLI. Falling back to terraform." >>/terraform/logs/terraform-status.log
+        echo "$(date): Unable to destroy via Azure CLI. Falling back to terraform." >>/terraform/logs/terraform-destroy.log
+        echo "$(date): terraform destroy log" >>/terraform/logs/terraform-destroy.log
 
         echo "terraform destroy --auto-approve"
-        echo "$(date): terraform destroy --auto-approve started" >>/winattacklab/logs/terraform-status.log
-        echo "$(date): terraform destroy --auto-approve started" >>/winattacklab/logs/terraform-destroy.log
-        echo "$(date): terraform destroy log" >>/winattacklab/logs/terraform-destroy.log
-        terraform destroy -no-color -auto-approve -compact-warnings 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /winattacklab/logs/terraform-destroy.log
-        echo "$(date): terraform destroy --auto-approve finished" >>/winattacklab/logs/terraform-status.log
+        echo "$(date): terraform destroy --auto-approve started" >>/terraform/logs/terraform-status.log
+        echo "$(date): terraform destroy --auto-approve started" >>/terraform/logs/terraform-destroy.log
+        echo "$(date): terraform destroy log" >>/terraform/logs/terraform-destroy.log
+        terraform destroy -no-color -auto-approve -compact-warnings 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /terraform/logs/terraform-destroy.log
+        echo "$(date): terraform destroy --auto-approve finished" >>/terraform/logs/terraform-status.log
         echo "$(date): please click on the \"Log\" menu to see the destroy log"
     else
-        echo "DESTROYED=\"finished\"" >/winattacklab/.destroy
-        echo "DEPLOYED=\"init\"" >/winattacklab/.deploy
+        echo "DESTROYED=\"finished\"" >/terraform/.destroy
+        echo "DEPLOYED=\"init\"" >/terraform/.deploy
     fi
 }
+
+resource_group_name=`grep -re "^resource \"azurerm_resource_group\"" *.tf | awk -F"\"" '{print $4}'`
+if [ $? -eq 0 ]; then
+    echo "$(date): Resource group variable name is '$resource_group_name.'" >> /terraform/logs/terraform-apply.log
+else
+    echo "$(date): Unable to determine resource group variable name" >> /terraform/logs/terraform-apply.log
+    echo "$(date): Unable to determine resource group variable name"
+fi
 
 case "$DEPLOYED" in
 init)
     echo "$(date): terraform deploy not yet started - no need to destroy"
-    echo "$(date): terraform deploy not yet started - no need to destroy" >>/winattacklab/logs/terraform-destroy.log
+    echo "$(date): terraform deploy not yet started - no need to destroy" >>/terraform/logs/terraform-destroy.log
     ;;
 deploying)
     echo "$(date): terraform deploy currently running - stopping it"
-    echo "$(date): terraform deploy currently running - stopping it" >>/winattacklab/logs/terraform-destroy.log
+    echo "$(date): terraform deploy currently running - stopping it" >>/terraform/logs/terraform-destroy.log
     pkill terraform
 
     echo "====== Azure Resource Group ====="
-    terraform state show 'azurerm_resource_group.winattacklabgroup' | grep id | cut -d'/' -f5- | cut -d '"' -f1
+    terraform state show "azurerm_resource_group.$resource_group_name" | grep id | cut -d'/' -f5- | cut -d '"' -f1
     echo "================================="
     ;&
 deploying | finished)
 
     echo "$(date): terraform deployment will now be destroyed"
-    echo "$(date): terraform deployment will now be destroyed" >>/winattacklab/logs/terraform-destroy.log
+    echo "$(date): terraform deployment will now be destroyed" >>/terraform/logs/terraform-destroy.log
 
     case "$DESTROYED" in
     init)
-        rm /winattacklab/terraform.start
-        rm /winattacklab/terraform.end
+        rm /terraform/terraform.start
+        rm /terraform/terraform.end
         echo "$(date): auto-destroying on docker-compose down" >>/tmp/terraform.destroy.cron
         echo "$(date): terraform deploy has been executed on $(date)" >/tmp/start-stop.log
 
@@ -64,13 +72,13 @@ deploying | finished)
         if [ $RESULT -eq 0 ]; then
             echo "$(date): terraform destroy is running - stopping it"
             echo "$(date): terraform destroy was executed on: $(cat /tmp/start-stop.log)"
-            echo "$(date): terraform destroy is running - stopping it" >>/winattacklab/logs/terraform-destroy.log
+            echo "$(date): terraform destroy is running - stopping it" >>/terraform/logs/terraform-destroy.log
 
             destroy_with_fallback
 
         else
             echo "$(date): terraform destroy was executed on: $(cat /tmp/start-stop.log) but not finished yet"
-            echo "$(date): terraform destroy was executed on: $(cat /tmp/start-stop.log) but not finished yet" >>/winattacklab/logs/terraform-destroy.log
+            echo "$(date): terraform destroy was executed on: $(cat /tmp/start-stop.log) but not finished yet" >>/terraform/logs/terraform-destroy.log
 
             destroy_with_fallback
         fi
@@ -78,7 +86,7 @@ deploying | finished)
     finished)
         echo "$(date): terraform destroy was executed on: $(cat /tmp/start-stop.log)"
         echo "terraform destroy has been finished"
-        echo "terraform destroy has been finished" >>/winattacklab/logs/terraform-destroy.log
+        echo "terraform destroy has been finished" >>/terraform/logs/terraform-destroy.log
         ;;
     *)
         exit 1
