@@ -14,7 +14,12 @@ source /terraform/proxy.env
 cd /terraform/
 
 resource_group_name=`grep -re "^resource \"azurerm_resource_group\"" *.tf | awk -F"\"" '{print $4}'`
-echo "Resource group variable name: $resource_group_name."
+if [ $? -eq 0 ]; then
+    echo "$(date): Resource group variable name is '$resource_group_name.'" >> /terraform/logs/terraform-logs.log
+else
+    echo "$(date): Unable to determine resource group variable name" >> /terraform/logs/terraform-logs.log
+    echo "$(date): Unable to determine resource group variable name"
+fi
 
 case "$DEPLOYED" in
 init)
