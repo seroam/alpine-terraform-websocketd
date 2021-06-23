@@ -10,6 +10,10 @@ echo "export HTTPS_PROXY=$https_proxy" >>/terraform/proxy.env
 
 source /terraform/proxy.env
 
+if [ ! -e /terraform/logs ]; then
+    mkdir /terraform/logs
+fi
+
 # SETUP EMPTY LOGS
 touch /terraform/terraform-plan.log
 touch /terraform/logs/terraform-apply.log
