@@ -1,0 +1,80 @@
+#!/bin/bash
+
+cd /winattacklab
+source /winattacklab/proxy.env
+
+echo "$(date): cronjob run" >>/winattacklab/logs/check-deployment.log
+NOW=$(date +%s)
+
+function destroy_with_fallback {
+  echo "DESTROYED=\"running\"" >/winattacklab/.destroy
+  echo "$(date): az group delete started" >>/winattacklab/logs/terraform-status.log
+  echo "$(date): az group delete started" >>/winattacklab/logs/terraform-destroy.log
+  echo "$(date): az group delete started" >>/winattacklab/logs/terraform-destroy.log
+  /opt/scripts/az-delete
+  if [ $? -ne 0 ]; then
+    echo "$(date): Unable to destroy via Azure CLI. Falling back to terraform." >>/winattacklab/logs/terraform-status.log
+    echo "$(date): Unable to destroy via Azure CLI. Falling back to terraform." >>/winattacklab/logs/terraform-destroy.log
+    echo "$(date): terraform destroy log" >>/winattacklab/logs/terraform-destroy.log
+
+    echo "terraform destroy --auto-approve"
+    echo "$(date): terraform destroy --auto-approve started" >>/winattacklab/logs/terraform-status.log
+    echo "$(date): terraform destroy --auto-approve started" >>/winattacklab/logs/terraform-destroy.log
+    echo "$(date): destroy executed by cron" >>/winattacklab/logs/terraform-destroy.log
+    echo "$(date): destroy executed by cron" >>/tmp/terraform.destroy.cron
+    terraform destroy -no-color -auto-approve -compact-warnings 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /tmp/terraform15min.bot.destroy
+    echo "$(date): terraform destroy --auto-approve finished" >>/winattacklab/logs/terraform-status.log
+    echo "$(date): please click on the \"Log\" menu to see the destroy log"
+  else
+    echo "DESTROYED=\"finished\"" >/winattacklab/.destroy
+    echo "DEPLOYED=\"init\"" >/winattacklab/.deploy
+  fi
+}
+
+# Enforce Shutdown by CRON, create /tmp/terraform.destroy.cron
+if [ -e /winattacklab/terraform.end ]; then
+  START=$(cat "/winattacklab/terraform.start")
+  END=$(cat "/winattacklab/terraform.end")
+
+  if [ $((END - NOW)) -gt 0 ]; then
+    echo "$(date): will not destroy deployment" >>/winattacklab/logs/check-deployment.log
+    echo "$(date): auto destroyment will run after $(date -d @$((END)))" >>/winattacklab/logs/check-deployment.log
+    echo "$(date): auto destroyment will run in $((END - NOW)) seconds" >>/winattacklab/logs/check-deployment.log
+  else
+    echo "$(date): auto destroyment will should have been run on $(date -d @$((END)))" >>/winattacklab/logs/check-deployment.log
+    echo "$(date): terraform deployment expired - will destroy now" >>/winattacklab/logs/check-deployment.log
+    echo "$(date): auto destroyment will run in $((END - NOW)) seconds" >>/winattacklab/logs/check-deployment.log
+    mv /winattacklab/terraform.start /winattacklab/terraform.start.$END
+    mv /winattacklab/terraform.end /winattacklab/terraform.end.$END
+
+    destroy_with_fallback
+    echo "$(date): Destruction finished" >>/winattacklab/logs/terraform-destroy.log
+  fi
+else
+  echo "$(date): do nothing: currently nothing deployed" >>/winattacklab/logs/check-deployment.log
+  echo "$(date): do nothing: currently nothing deployed" >>/winattacklab/logs/check-deployment.log
+fi
+
+# Enforce Shutdown by CRON
+if [ -e /tmp/terraform.destroy.cron ]; then
+  ps -ef | grep "/usr/bin/terraform destroy" | grep -v grep >/dev/null
+  RESULT=$?
+  if [ $RESULT -eq 0 ]; then
+    echo "$(date): cron: terraform destroy is still running" >>/winattacklab/logs/check-deployment.log
+  else
+    echo "$(date): cron: terraform destroyment currently not running" >>/winattacklab/logs/check-deployment.log
+    destroy_with_fallback
+    if [ -e /winattacklab/terraform.tfstate ]; then
+      echo "$(date): cron: destroy was not yet successul: infrastructure still running" >>/winattacklab/logs/check-deployment.log
+      echo "$(date): cron: running terraform destry again" >>/winattacklab/logs/check-deployment.log
+      destroy_with_fallback
+    else
+      echo "$(date): cron: infrastructure is fully down" >>/winattacklab/logs/check-deployment.log
+      echo "$(date): cron: will set .destroy and .deploy to init and remove /tmp/terraform.destroy.cron" >>/tmp/terraform15min.bot
+      echo "DESTROYED=\"init\"" >/winattacklab/.destroy
+      echo "DEPLOYED=\"init\"" >/winattacklab/.deploy
+      rm /tmp/terraform.destroy.cron
+      touch /tmp/terraform.destroy.cron.$NOW
+    fi
+  fi
+fi
