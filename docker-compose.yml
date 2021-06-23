@@ -3,7 +3,7 @@ version: '3.6'
 services:
   deployment-manager:
     build: .
-    image: hackinglab/alpine-terraform-websocketd:3.2
+    image: hackinglab/alpine-terraform-websocketd:dev
     environment:
       - S6_KILL_FINISH_MAXTIME=3600000
     stop_grace_period: 1h
