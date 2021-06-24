@@ -59,6 +59,8 @@ tenant_id = "TENANT_ID"
 
 You may specify the heading of the Web UI using the environment variable `UI_HEADING`.
 
+The environment variable `autodestroy` to specify a duration (in seconds) after which the Terraform desployment will automatically be destroyed, starting from the moment a user starts the Deploy Task. The minimum duration is 15 minutes (900s). 
+
 *Note that values set specifically in files take precedence over those set via environment variables.*
 
 **You must include the following in your docker-compose file in order for the deployment manager to work properly:**   
