@@ -32,7 +32,6 @@ RUN apk add --no-cache --update nginx \
     rm -r /usr/lib/python*/ensurepip && \
     pip3 install --no-cache --upgrade pip setuptools wheel && \
     if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip ; fi && \
-	rm -rf /var/cache/apk/* && \
 	curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip  && \
 	unzip /tmp/awscliv2.zip -d /opt/ && \
 	/opt/aws/install -i /usr/local/aws-cli -b /usr/local/bin && \
@@ -45,18 +44,33 @@ RUN apk add --no-cache --update nginx \
 	rm -rf /var/cache/apk/* 
 
 # Terraform CLI
-RUN apk add --no-cache curl tar openssl sudo bash jq python3
-
-RUN apk --update --no-cache add postgresql-client postgresql
-
-RUN apk add --virtual=build gcc libffi-dev musl-dev openssl-dev make python3-dev
-
-RUN pip3 install virtualenv &&\
-    python3 -m virtualenv /opt/azure-cli
-
-RUN /opt/azure-cli/bin/python -m pip --no-cache-dir install azure-cli packaging azure-mgmt-resource
-
-RUN chmod +x /usr/bin/az
+RUN apk add --no-cache --update \
+    curl \
+    tar \
+    openssl \
+    sudo \
+    bash \
+    jq \
+    python3 \
+    postgresql-client \
+    postgresql && \
+    \
+    apk add --no-cache --virtual=build \
+    gcc \
+    libffi-dev \
+    musl-dev \
+    openssl-dev \
+    make \
+    python3-dev && \
+    \
+    pip3 install virtualenv && \
+    \
+    python3 -m virtualenv /opt/azure-cli && \
+    /opt/azure-cli/bin/python -m pip --no-cache-dir install azure-cli packaging azure-mgmt-resource && \
+    chmod +x /usr/bin/az && \
+    \
+    apk del build && \
+    rm -rf /var/cache/apk/* 
 
 # Expose the ports for nginx
 EXPOSE 80

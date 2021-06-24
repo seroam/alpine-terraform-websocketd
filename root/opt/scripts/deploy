@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ! -e /terraform ]; then
+if [ -e /terraform/no-content ]; then
     echo "=========================="
     echo "Executing /opt/scripts/deploy"
     echo "No content found."

@@ -1,5 +1,10 @@
 #!/usr/bin/with-contenv bash
 
+if [ -e /terraform/no-content ]; then
+    echo "No content found. Exiting."
+    exit 0
+fi
+
 touch /terraform/logs/az.log
 
 source /terraform/proxy.env

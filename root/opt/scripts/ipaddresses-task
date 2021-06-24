@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ! -e /terraform ]; then
+if [ -e /terraform/no-content ]; then
     echo "=========================="
     echo "executing /opt/scripts/ipaddresses-task"
     echo "No content found."
