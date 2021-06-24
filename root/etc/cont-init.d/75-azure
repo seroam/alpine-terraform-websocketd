@@ -2,6 +2,8 @@
 
 touch /terraform/logs/az.log
 
+source /terraform/proxy.env
+
 # Attempt to log in to Azure
 echo "`date`: Attempting to log in to Azure" >> /terraform/logs/az.log
 
