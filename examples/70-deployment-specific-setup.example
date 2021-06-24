@@ -3,6 +3,7 @@
 cd /terraform
 
 # ADD SSH KEYS
+# The Terraform code would then have to make sure to use the keys in those locations
 ssh-keygen -q -f id_rsa -N ""
 
 cp id_rsa ./modules/linux-vm/id_rsa
@@ -19,7 +20,7 @@ password="password"
 sed -e "s/ADMIN_USERNAME/$username/g" /terraform/terraform.tfvars > /terraform/terraform.tfvars.neu
 sed -e "s/ADMIN_PASSWORD/$password/g" /terraform/terraform.tfvars.neu > /terraform/terraform.tfvars
 
-# Write username and password to file to later print them in the IP Addresses task
+# Write username and password to file to later print them with show-credentials.sh
 echo "Username: $username" > /tmp/credentials.txt
 echo "Password: $password" >> /tmp/credentials.txt
 echo "===" >> /tmp/credentials.txt
