@@ -14,13 +14,13 @@ chmod 640 ./modules/linux-vm/id_rsa.pub
 
 # SETUP ACCOUNT
 username="admin"
-password="password"
+password=$(pwgen 10 1 -c 1 -n 1)
 
 # Replace placeholders in terraform.tfvars with actual values
-sed -e "s/ADMIN_USERNAME/$username/g" /terraform/terraform.tfvars > /terraform/terraform.tfvars.neu
-sed -e "s/ADMIN_PASSWORD/$password/g" /terraform/terraform.tfvars.neu > /terraform/terraform.tfvars
+sed -e "s/ADMIN_USERNAME/$username/g" /terraform/terraform.tfvars >/terraform/terraform.tfvars.neu
+sed -e "s/ADMIN_PASSWORD/$password/g" /terraform/terraform.tfvars.neu >/terraform/terraform.tfvars
 
 # Write username and password to file to later print them with show-credentials.sh
-echo "Username: $username" > /tmp/credentials.txt
-echo "Password: $password" >> /tmp/credentials.txt
-echo "===" >> /tmp/credentials.txt
+echo "Username: $username" >/tmp/credentials.txt
+echo "Password: $password" >>/tmp/credentials.txt
+echo "===" >>/tmp/credentials.txt
