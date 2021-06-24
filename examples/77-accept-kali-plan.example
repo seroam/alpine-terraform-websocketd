@@ -1,6 +1,7 @@
 #!/usr/bin/with-contenv bash
 
 source /terraform/az_login
+source /terraform/proxy.env
 
 echo "`date`: Attemping to accept kali license agreement" | tee -a /terraform/logs/az.log
 
