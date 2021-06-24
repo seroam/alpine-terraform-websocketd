@@ -15,7 +15,7 @@ cd /terraform/
 
 resource_group_name=`grep -re "^resource \"azurerm_resource_group\"" *.tf | awk -F"\"" '{print $4}'`
 if [ $? -eq 0 ]; then
-    echo "$(date): Resource group variable name is '$resource_group_name.'" >> /terraform/logs/terraform-destroy.log
+    echo "$(date): Resource group variable name is '$resource_group_name'." >> /terraform/logs/terraform-destroy.log
 else
     echo "$(date): Unable to determine resource group variable name" >> /terraform/logs/terraform-destroy.log
     echo "$(date): Unable to determine resource group variable name"
