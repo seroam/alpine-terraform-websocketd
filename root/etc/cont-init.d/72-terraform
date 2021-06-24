@@ -1,5 +1,10 @@
 #!/usr/bin/with-contenv bash
 
+if [ ! -e /terraform ]; then
+    mkdir /terraform
+    touch /terraform/no-content    
+fi
+
 cd /terraform
 
 # SETUP PROXY
@@ -24,13 +29,13 @@ touch /terraform/logs/terraform-init.log
 
 # SETUP DATE
 mydate=`date +%Y-%m-%d--%H-%M-%S`
-sed -i -e "s/E1DATE/$mydate/g" main.tf
+if [ -e main.tf ]; then sed -i -e "s/E1DATE/$mydate/g" main.tf; fi
 
 # SET AZURE CREDENTIALS
-if [ -n $CLIENT_ID ]; then sed -i -e "s/CLIENT_ID/$CLIENT_ID/g" /terraform/terraform.tfvars; fi
-if [ -n $CLIENT_SECRET ]; then sed -i -e "s/CLIENT_SECRET/$CLIENT_SECRET/g" /terraform/terraform.tfvars; fi
-if [ -n $SUBSCRIPTION_ID ]; then sed -i -e "s/SUBSCRIPTION_ID/$SUBSCRIPTION_ID/g" /terraform/terraform.tfvars; fi
-if [ -n $TENANT_ID ]; then sed -i -e "s/TENANT_ID/$TENANT_ID/g" /terraform/terraform.tfvars; fi
+if [ -n "${CLIENT_ID}" ]; then sed -i -e "s/CLIENT_ID/$CLIENT_ID/g" /terraform/terraform.tfvars; fi
+if [ -n "${CLIENT_SECRET}" ]; then sed -i -e "s/CLIENT_SECRET/$CLIENT_SECRET/g" /terraform/terraform.tfvars; fi
+if [ -n "${SUBSCRIPTION_ID}" ]; then sed -i -e "s/SUBSCRIPTION_ID/$SUBSCRIPTION_ID/g" /terraform/terraform.tfvars; fi
+if [ -n "${TENANT_ID}" ]; then sed -i -e "s/TENANT_ID/$TENANT_ID/g" /terraform/terraform.tfvars; fi
 
 # INIT
 terraform init -no-color 2>&1 >/terraform/logs/terraform-init.log
