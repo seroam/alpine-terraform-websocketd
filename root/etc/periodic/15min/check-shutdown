@@ -1,0 +1,79 @@
+#!/bin/bash
+
+cd /terraform
+source /terraform/proxy.env
+
+echo "$(date): cronjob run" >>/terraform/logs/check-deployment.log
+NOW=$(date +%s)
+
+function destroy_with_fallback {
+  echo "DESTROYED=\"running\"" >/terraform/.destroy
+  echo "$(date): az group delete started" >>/terraform/logs/terraform-status.log
+  echo "$(date): az group delete started" >>/terraform/logs/terraform-destroy.log
+  echo "$(date): az group delete started" >>/terraform/logs/terraform-destroy.log
+  /opt/scripts/az-delete
+  if [ $? -ne 0 ]; then
+    echo "$(date): Unable to destroy via Azure CLI. Falling back to terraform." >>/terraform/logs/terraform-status.log
+    echo "$(date): Unable to destroy via Azure CLI. Falling back to terraform." >>/terraform/logs/terraform-destroy.log
+    echo "$(date): terraform destroy log" >>/terraform/logs/terraform-destroy.log
+
+    echo "terraform destroy --auto-approve"
+    echo "$(date): terraform destroy --auto-approve started" >>/terraform/logs/terraform-status.log
+    echo "$(date): terraform destroy --auto-approve started" >>/terraform/logs/terraform-destroy.log
+    echo "$(date): destroy executed by cron" >>/terraform/logs/terraform-destroy.log
+    echo "$(date): destroy executed by cron" >>/tmp/terraform.destroy.cron
+    terraform destroy -no-color -auto-approve -compact-warnings 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /tmp/terraform15min.bot.destroy
+    echo "$(date): terraform destroy --auto-approve finished" >>/terraform/logs/terraform-status.log
+    echo "$(date): please click on the \"Log\" menu to see the destroy log"
+  else
+    echo "DESTROYED=\"finished\"" >/terraform/.destroy
+    echo "DEPLOYED=\"init\"" >/terraform/.deploy
+  fi
+}
+
+# Enforce Shutdown by CRON, create /tmp/terraform.destroy.cron
+if [ -e /terraform/terraform.end ]; then
+  START=$(cat "/terraform/terraform.start")
+  END=$(cat "/terraform/terraform.end")
+
+  if [ $((END - NOW)) -gt 0 ]; then
+    echo "$(date): will not destroy deployment" >>/terraform/logs/check-deployment.log
+    echo "$(date): auto destruction will run after $(date -d @$((END)))" >>/terraform/logs/check-deployment.log
+    echo "$(date): auto destruction will run in $((END - NOW)) seconds" >>/terraform/logs/check-deployment.log
+  else
+    echo "$(date): auto destruction should have been run on $(date -d @$((END)))" >>/terraform/logs/check-deployment.log
+    echo "$(date): terraform deployment expired - will destroy now" >>/terraform/logs/check-deployment.log
+    mv /terraform/terraform.start /terraform/terraform.start.$END
+    mv /terraform/terraform.end /terraform/terraform.end.$END
+
+    destroy_with_fallback
+    echo "$(date): Destruction finished" >>/terraform/logs/terraform-destroy.log
+  fi
+else
+  echo "$(date): do nothing: currently nothing deployed" >>/terraform/logs/check-deployment.log
+  echo "$(date): do nothing: currently nothing deployed" >>/terraform/logs/check-deployment.log
+fi
+
+# Enforce Shutdown by CRON
+if [ -e /tmp/terraform.destroy.cron ]; then
+  ps -ef | grep "/usr/bin/terraform destroy" | grep -v grep >/dev/null
+  RESULT=$?
+  if [ $RESULT -eq 0 ]; then
+    echo "$(date): cron: terraform destroy is still running" >>/terraform/logs/check-deployment.log
+  else
+    echo "$(date): cron: terraform destroy currently not running" >>/terraform/logs/check-deployment.log
+    destroy_with_fallback
+    if [ -e /terraform/terraform.tfstate ]; then
+      echo "$(date): cron: destroy was not yet successul: infrastructure still running" >>/terraform/logs/check-deployment.log
+      echo "$(date): cron: running terraform destry again" >>/terraform/logs/check-deployment.log
+      destroy_with_fallback
+    else
+      echo "$(date): cron: infrastructure is fully down" >>/terraform/logs/check-deployment.log
+      echo "$(date): cron: will set .destroy and .deploy to init and remove /tmp/terraform.destroy.cron" >>/tmp/terraform15min.bot
+      echo "DESTROYED=\"init\"" >/terraform/.destroy
+      echo "DEPLOYED=\"init\"" >/terraform/.deploy
+      rm /tmp/terraform.destroy.cron
+      touch /tmp/terraform.destroy.cron.$NOW
+    fi
+  fi
+fi

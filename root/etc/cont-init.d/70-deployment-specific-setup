@@ -1,0 +1,3 @@
+#!/usr/bin/with-contenv bash
+
+echo "Make any changes that need to happen before the deployment in here."

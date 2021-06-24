@@ -1,0 +1,26 @@
+#!/usr/bin/with-contenv bash
+
+cd /terraform
+
+# ADD SSH KEYS
+# The Terraform code would then have to make sure to use the keys in those locations
+ssh-keygen -q -f id_rsa -N ""
+
+cp id_rsa ./modules/linux-vm/id_rsa
+chmod 600 ./modules/linux-vm/id_rsa
+
+cp id_rsa.pub ./modules/linux-vm/id_rsa.pub
+chmod 640 ./modules/linux-vm/id_rsa.pub
+
+# SETUP ACCOUNT
+username="admin"
+password="password"
+
+# Replace placeholders in terraform.tfvars with actual values
+sed -e "s/ADMIN_USERNAME/$username/g" /terraform/terraform.tfvars > /terraform/terraform.tfvars.neu
+sed -e "s/ADMIN_PASSWORD/$password/g" /terraform/terraform.tfvars.neu > /terraform/terraform.tfvars
+
+# Write username and password to file to later print them with show-credentials.sh
+echo "Username: $username" > /tmp/credentials.txt
+echo "Password: $password" >> /tmp/credentials.txt
+echo "===" >> /tmp/credentials.txt

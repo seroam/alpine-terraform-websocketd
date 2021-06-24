@@ -1,0 +1,55 @@
+#!/usr/bin/with-contenv bash
+
+cd /terraform
+
+# SETUP PROXY
+echo "export http_proxy=$http_proxy" >/terraform/proxy.env
+echo "export HTTP_PROXY=$http_proxy" >>/terraform/proxy.env
+echo "export https_proxy=$https_proxy" >>/terraform/proxy.env
+echo "export HTTPS_PROXY=$https_proxy" >>/terraform/proxy.env
+
+source /terraform/proxy.env
+
+if [ ! -e /terraform/logs ]; then
+    mkdir /terraform/logs
+fi
+
+# SETUP EMPTY LOGS
+touch /terraform/terraform-plan.log
+touch /terraform/logs/terraform-apply.log
+touch /terraform/logs/terraform-destroy.log
+touch /terraform/logs/terraform-ipaddresses.log
+touch /terraform/logs/terraform-status.log
+touch /terraform/logs/terraform-init.log
+
+# SETUP DATE
+mydate=`date +%Y-%m-%d--%H-%M-%S`
+sed -i -e "s/E1DATE/$mydate/g" main.tf
+
+# SET AZURE CREDENTIALS
+if [ -n $CLIENT_ID ]; then sed -i -e "s/CLIENT_ID/$CLIENT_ID/g" /terraform/terraform.tfvars; fi
+if [ -n $CLIENT_SECRET ]; then sed -i -e "s/CLIENT_SECRET/$CLIENT_SECRET/g" /terraform/terraform.tfvars; fi
+if [ -n $SUBSCRIPTION_ID ]; then sed -i -e "s/SUBSCRIPTION_ID/$SUBSCRIPTION_ID/g" /terraform/terraform.tfvars; fi
+if [ -n $TENANT_ID ]; then sed -i -e "s/TENANT_ID/$TENANT_ID/g" /terraform/terraform.tfvars; fi
+
+# INIT
+terraform init -no-color 2>&1 >/terraform/logs/terraform-init.log
+echo "$(date): terraform init executed" >>/terraform/logs/terraform-status.log 2>&1
+
+# CREATE PLAN
+terraform plan -no-color -out /terraform/terraform-plan >/terraform/logs/terraform-plan.log 2>&1
+if [ $? -ne 0 ]; then
+    echo "$(date): Unable to create Terraform plan. Possibly wrong credentials?" >>/terraform/logs/terraform-status.log
+    echo "$(date): Unable to create Terraform plan. Possibly wrong credentials?" >>/terraform/logs/terraform-plan.log
+    touch /terraform/plan.fail
+else
+    echo "$(date): terraform plan executed" >>/terraform/logs/terraform-status.log
+fi
+
+if [ ! -e /terraform/.deploy ]; then
+    echo "DEPLOYED=\"init\"" > /terraform/.deploy
+fi
+
+if [ ! -e /terraform/.destroy ]; then
+    echo "DESTROYED=\"init\"" > /terraform/.destroy
+fi

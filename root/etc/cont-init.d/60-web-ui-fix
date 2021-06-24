@@ -6,7 +6,9 @@ echo $websocketurl > /tmp/debug.log
 
 if [ -z ${websocketurl+x} ]; then
 	sed -i -e "s/SED_BASE_SOCKET_URL/localhost/g" /opt/www/js/script.js
+	sed -i -e "s/wss/ws/g" /opt/www/js/script.js
 else
 	sed -i -e "s/SED_BASE_SOCKET_URL/$websocketurl/g" /opt/www/js/script.js
 fi
 
+if [ -n $UI_HEADING ]; then sed -i -e "s/Winsocketd-UI/$UI_HEADING/g" /opt/www/index.html; fi

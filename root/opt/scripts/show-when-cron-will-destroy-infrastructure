@@ -1,9 +1,9 @@
 #!/bin/bash
 
 NOW=$(date +%s);
-START=$(cat "/winattacklab/terraform.start")
+START=$(cat "/terraform/terraform.start")
 STARTformat=`date -d @$START`
-END=$(cat "/winattacklab/terraform.end")
+END=$(cat "/terraform/terraform.end")
 ENDformat=`date -d @$END`
 DIFF=$((END-NOW))
 
@@ -13,5 +13,3 @@ if [ "$DIFF" -gt 0 ]; then
 	echo "`date`: infrastructure will automatically destroy in $DIFF seconds"
 	echo "`date`: infrastructure will automatically destroy on $ENDformat"
 fi
-
-

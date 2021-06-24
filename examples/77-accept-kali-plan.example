@@ -1,0 +1,30 @@
+#!/usr/bin/with-contenv bash
+
+source /terraform/az_login
+
+echo "`date`: Attemping to accept kali license agreement" | tee -a /terraform/logs/az.log
+
+if [[ -z $az_available || $az_available != "true" ]]; then
+  echo "`date`: Azure login failed previously. Aborting script." | tee -a /terraform/logs/az.log
+  exit 1
+fi
+
+echo "`date`: az vm image terms show --plan kali --offer kali-linux --publisher kali-linux --query 'accepted'" >>/terraform/logs/az.log
+prev_accepted=$(az vm image terms show --plan kali --offer kali-linux --publisher kali-linux --query 'accepted' 2>> /terraform/logs/az.log)
+if [ $? -ne 0 ]; then
+  echo "`date`: Unable to query kali license acceptance status." | tee -a /terraform/logs/az.log
+  exit 1
+fi
+
+if [ "$prev_accepted" = "true" ]; then
+  echo "`date`: Previously accepted the kali license agreement." | tee -a /terraform/logs/az.log
+  exit 0
+fi
+
+echo "`date`: az vm image terms accept --plan kali --offer kali-linux --publisher kali-linux --query 'accepted'" >>/terraform/logs/az.log 2>&1
+accepted=$(az vm image terms accept --plan kali --offer kali-linux --publisher kali-linux --query 'accepted' 2>> /terraform/logs/az.log) 
+if [ "$accepted" = "true" ]; then
+  echo "`date`: Successfully accepted the kali lincense agreement" | tee -a /terraform/logs/az.log
+else
+  echo "`date`: Unable to accept the kali license agreement. Please check the log at /terraform/logs/az.log to figure out what went wrong." | tee -a /terraform/logs/az.log
+fi

@@ -1,0 +1,103 @@
+#!/bin/bash
+
+source /terraform/.deploy
+source /terraform/.destroy
+source /terraform/proxy.env
+
+cd /terraform/
+
+echo "`date`: Deployment Manager Version 2021-04-16-R104"
+sleep 2
+
+resource_group_name=`grep -re "^resource \"azurerm_resource_group\"" *.tf | awk -F"\"" '{print $4}'`
+if [ $? -eq 0 ]; then
+    echo "$(date): Resource group variable name is '$resource_group_name.'" >> /terraform/logs/terraform-destroy.log
+else
+    echo "$(date): Unable to determine resource group variable name" >> /terraform/logs/terraform-destroy.log
+    echo "$(date): Unable to determine resource group variable name"
+fi
+
+case "$DEPLOYED" in
+        init)
+            echo "`date`: terraform deploy not yet started - cannot destroy"
+            echo "`date`: terraform deploy not yet started - cannot destroy" >> /terraform/logs/terraform-destroy.log
+            ;;
+
+        deploying)
+            echo "`date`: terraform deploy currently running - cannot destroy"
+            echo "`date`: terraform deploy currently running - cannot destroy" >> /terraform/logs/terraform-destroy.log
+
+            echo "====== Azure Resource Group ====="                                                                                                    
+	    terraform state show "azurerm_resource_group.$resource_group_name" |grep id  | cut -d'/' -f5- | cut -d '"' -f1
+            echo "================================="   
+            sleep 3 
+            ;;
+
+        finished)
+	    echo "`date`: terraform deployment will now be destroyed"
+	    echo "`date`: terraform deployment will now be destroyed" >> /terraform/logs/terraform-destroy.log
+            case "$DESTROYED" in
+                init)
+                    rm /terraform/terraform.start
+                    rm /terraform/terraform.end
+		    echo "`date`: destroy clicked in DM Web UI" >> /tmp/terraform.destroy.cron
+		    echo "`date`: terraform deploy has been executed on `date`" > /tmp/start-stop.log
+
+                    echo "DESTROYED=\"running\"" > /terraform/.destroy
+                    echo "terraform destroy --auto-approve"
+                    echo "`date`: terraform destroy --auto-approve started" >> /terraform/logs/terraform-status.log
+                    echo "`date`: terraform destroy --auto-approve started" >> /terraform/logs/terraform-destroy.log
+                    echo "`date`: terraform destroy log" >> /terraform/logs/terraform-destroy.log
+                    terraform destroy -no-color -auto-approve -compact-warnings 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /terraform/logs/terraform-destroy.log
+                    echo "`date`: terraform destroy --auto-approve finished" >> /terraform/logs/terraform-status.log
+                    ;;
+                running)
+                    ps -ef|grep "/usr/bin/terraform destroy"|grep -v grep > /dev/null
+                    RESULT=$?
+                    if [ $RESULT -eq 0 ]; then
+                        echo "`date`: terraform destroy is still running" 
+                        echo "`date`: terraform destroy was executed on: `cat /tmp/start-stop.log`" 
+                        echo "`date`: terraform destroy is still running" >> /terraform/logs/terraform-destroy.log
+                    else
+                        echo "`date`: terraform destroy was executed on: `cat /tmp/start-stop.log` but not finished yet" 
+                        echo "`date`: terraform destroy was executed on: `cat /tmp/start-stop.log` but not finished yet" >> /terraform/logs/terraform-destroy.log
+			terraform state show "azurerm_resource_group.$resource_group_name" >> /terraform/logs/terraform-destroy.log
+			R1=$?
+			if [ $R1 -eq 0 ]; then
+				echo "`date`: destroy was not yet successul: infrastructure still running"
+				echo "`date`: destroy was not yet successul: infrastructure still running" >> /terraform/logs/terraform-destroy.log
+				echo "`date`: running terraform destroy again" >> /terraform/logs/terraform-destroy.log
+				terraform destroy -no-color --auto-approve 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' >> /terraform/logs/terraform-destroy.log
+			else
+				echo "`date`: infrastructure is fully down"
+				echo "`date`: infrastructure is fully down" >>  /terraform/logs/terraform-destroy.log
+				echo "DESTROYED=\"finished\"" > /terraform/.destroy
+				echo "DEPLOYED=\"init\"" > /terraform/.deploy
+			fi 
+
+                    fi
+
+		    echo "`date`: opening destroy log"
+                    sleep 5
+                    tail -n +0 -f /terraform/logs/terraform-destroy.log
+                    ;;
+                finished)
+                    echo "`date`: terraform destroy was executed on: `cat /tmp/start-stop.log`" 
+                    echo "terraform destroy has been finished"
+                    echo "terraform destroy has been finished" >> /terraform/logs/terraform-destroy.log
+		    echo "`date`: opening destroy log"
+                    sleep 5
+                    tail -500 /terraform/logs/terraform-destroy.log
+                    echo "terraform destroy has been finished"
+                    ;;
+                *)
+                    exit 1
+                    ;;
+	        esac
+            ;;
+
+        *)
+            exit 1
+            ;;
+
+esac

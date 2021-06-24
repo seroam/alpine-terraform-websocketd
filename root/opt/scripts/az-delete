@@ -1,0 +1,58 @@
+#!/bin/bash
+
+source /terraform/proxy.env
+source /terraform/az_login
+cd /terraform
+
+echo "`date`: az_delete started" | tee -a /terraform/logs/terraform-status.log
+echo "`date`: az_delete started" >> /terraform/logs/terraform-destroy.log
+echo "`date`: az_delete started" >> /terraform/logs/az.log
+
+if [ $az_available != "true" ]; then
+    /etc/cont-init.d/75-azure
+    if [ $? -ne 0 ]; then
+    echo "`date`: Unable to log in to Azure."  | tee -a /terraform.logs/az.log
+        exit 1
+    fi
+fi
+
+resource_group_name=`grep -re "^resource \"azurerm_resource_group\"" *.tf | awk -F"\"" '{print $4}'`
+echo "Resource group variable name: $resource_group_name."
+
+if [ -e /terraform/terraform.tfstate ]; then
+    resource_group=`terraform state show "azurerm_resource_group.$resource_group_name" | grep id  | cut -d'/' -f5- | cut -d '"' -f1`
+    echo "`date`: Resource group according to tfstate: $resource_group" | tee -a /terraform/logs/az.log
+
+    prov_state=`az group list --query "[?name == '$resource_group'].properties.provisioningState"`
+    echo "`date`: Privisioning state: $prov_state" | tee -a /terraform/logs/az.log
+    case "$prov_state" in
+        *Deleting*)
+            echo "`date`: Resource group is already being destroyed.\nDeleting tfstate file."
+            rm /terraform/terraform.tfstate
+            exit 0
+            ;;
+        [])
+            echo "`date`: Resource group with name $resource_group was not found.\nDeleting tfstate file."
+            rm /terraform/terraform.tfstate
+            exit 0
+            ;;
+        *) # CANCELED, CREATING, FAILED, SUCCEEDED, UPDATING
+            echo "`date`: Found and not deleting. Continuing..." | tee -a /terraform/logs/az.log
+    esac
+
+    echo "`date`: az group delete --name $resource_group --no-wait -y" | tee -a /terraform/logs/az.log
+    az group delete --name $resource_group --no-wait -y | tee -a /terraform/logs/az.log
+    if [ $? -eq 0 ]; then
+        echo "`date`: Resource group deletion started." | tee -a /terraform/logs/az.log
+        echo "`date`: Deleting tfstate file." | tee -a /terraform/az.log
+        rm /terraform/terraform.tfstate | tee -a /terraform/logs/az.log
+        exit 0
+    else
+        echo "`date`: Unable to delete Resource Group." | tee -a /terraform/logs/az.log
+        return -1
+    fi
+
+else
+    echo "`date`: terraform.tfstate not found." | tee -a /terraform/logs/az.log
+    exit 0
+fi

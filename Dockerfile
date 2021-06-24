@@ -4,7 +4,7 @@ RUN go get github.com/joewalnes/websocketd
 
 
 FROM hackinglab/alpine-base:3.2
-MAINTAINER Ivan Buetler <ivan.buetler@compass-security.com
+LABEL maintainer=<ivan.buetler@compass-security.com>
 
 ENV TERRAFORM_VERSION=0.15.3
 
@@ -43,6 +43,20 @@ RUN apk add --no-cache --update nginx \
 	chown -R nginx:www-data /var/lib/nginx && \
 	chown -R nginx:www-data /opt/www && \
 	rm -rf /var/cache/apk/* 
+
+# Terraform CLI
+RUN apk add --no-cache curl tar openssl sudo bash jq python3
+
+RUN apk --update --no-cache add postgresql-client postgresql
+
+RUN apk add --virtual=build gcc libffi-dev musl-dev openssl-dev make python3-dev
+
+RUN pip3 install virtualenv &&\
+    python3 -m virtualenv /opt/azure-cli
+
+RUN /opt/azure-cli/bin/python -m pip --no-cache-dir install azure-cli packaging azure-mgmt-resource
+
+RUN chmod +x /usr/bin/az
 
 # Expose the ports for nginx
 EXPOSE 80

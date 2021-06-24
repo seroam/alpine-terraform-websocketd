@@ -1,0 +1,22 @@
+#!/usr/bin/with-contenv bash
+
+touch /terraform/logs/az.log
+
+source /terraform/proxy.env
+
+# Attempt to log in to Azure
+echo "`date`: Attempting to log in to Azure" >> /terraform/logs/az.log
+
+client_id=`grep '^client_id' /terraform/terraform.tfvars | grep  -o '"[0-9a-z\-]*"' | cut -d '"' -f2`
+client_secret=`grep '^client_secret' /terraform/terraform.tfvars | grep  -o '".*"' | cut -d '"' -f2`
+tenant_id=`grep '^tenant_id' /terraform/terraform.tfvars | grep  -o '"[0-9a-z\-]*"' | cut -d '"' -f2`
+
+az login --service-principal -u $client_id -p $client_secret --tenant $tenant_id >> /terraform/logs/az.log 2>&1
+if [ $? -eq 0 ]; then
+    echo "az_available=true" > /terraform/az_login
+    echo "`date`: Azure login available." | tee -a /terraform/logs/az.log
+else
+    echo "az_available=false" > /terraform/az_login
+    echo "`date`: Azure login NOT available." | tee -a /terraform/logs/az.log
+    exit 1
+fi

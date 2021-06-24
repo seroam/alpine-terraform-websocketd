@@ -1,0 +1,8 @@
+#!/bin/bash
+
+source /terraform/.deploy
+source /terraform/proxy.env
+
+cd /terraform/
+
+terraform apply -auto-approve -no-color -compact-warnings /terraform/terraform-plan 2>&1 | egrep -v '\$PlainPassword =|\$labdcadminpw =|\$password =' | tee -a /terraform/logs/terraform-deploy.log
