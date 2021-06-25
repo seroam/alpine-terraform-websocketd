@@ -37,6 +37,11 @@ if [ -n "${CLIENT_SECRET}" ]; then sed -i -e "s/CLIENT_SECRET/$CLIENT_SECRET/g" 
 if [ -n "${SUBSCRIPTION_ID}" ]; then sed -i -e "s/SUBSCRIPTION_ID/$SUBSCRIPTION_ID/g" /terraform/terraform.tfvars; fi
 if [ -n "${TENANT_ID}" ]; then sed -i -e "s/TENANT_ID/$TENANT_ID/g" /terraform/terraform.tfvars; fi
 
+# SET AZURE TAG
+if [ -n "${AZ_TAG}" ]; then
+    sed -i -e "s/^\s*environment_tag\s*=\s*\".*\"\s*$/environment_tag = \"$AZ_TAG\"/g" /terraform/terraform.tfvars
+fi
+
 # INIT
 terraform init -no-color 2>&1 >/terraform/logs/terraform-init.log
 echo "$(date): terraform init executed" >>/terraform/logs/terraform-status.log 2>&1
