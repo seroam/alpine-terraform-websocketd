@@ -43,8 +43,7 @@ deploying)
         echo "$(date): terraform apply is running" >>/terraform/logs/terraform-destroy.log
         echo "$(date): terraform apply is running"
         cat /tmp/start-date.log
-        echo "$(date): please wait until the infrastructure is fully deployed"
-        echo "$(date): you must wait until the infrastructure is fully deployed before you can destroy it"
+        echo "$(date): if you destroy now, the deployment will be cancelled."
         echo "$(date): click on \"Run Task\" in the Log menu to see the deploy log"
     else
         echo "$(date): terraform apply not running - deployment should have been finished - let's check ..." >>/terraform/logs/terraform-destroy.log
