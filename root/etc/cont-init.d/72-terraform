@@ -39,6 +39,7 @@ if [ -n "${TENANT_ID}" ]; then sed -i -e "s/TENANT_ID/$TENANT_ID/g" /terraform/t
 
 # SET AZURE TAG
 if [ -n "${AZ_TAG}" ]; then
+    echo "$(date): Setting Azure environment tag to $environment_tag." | tee -a /terraform/logs/terraform-apply.log
     sed -i -e "s/^\s*environment_tag\s*=\s*\".*\"\s*$/environment_tag = \"$AZ_TAG\"/g" /terraform/terraform.tfvars
 fi
 
